@@ -5,4 +5,3 @@
 // C header files
 #include "MSUniforms.h"
 #include "PhysicsKernel.h"
-#include "MSLIndicies.h"
