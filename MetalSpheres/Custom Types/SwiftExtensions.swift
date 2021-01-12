@@ -17,7 +17,6 @@ extension String {
 }
 
 extension Int {
-    // Bool constructor
     init(CBooleanConvert bool: Bool) { self = bool ? 1 : 0 }
 }
 

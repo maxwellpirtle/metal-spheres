@@ -44,16 +44,15 @@ kernel void allPairsKernel(constant uint &particleCount             [[ buffer(0)
                            const ushort2 threadPos                  [[ thread_position_in_grid ]],
                            const ushort2 threadsPerGrid             [[ threads_per_grid ]])
 {
-    // Used to index into the array of particle data
+    // Index into the array of particle data
     const ushort threadIndex { static_cast<ushort>(threadPos.x + threadsPerGrid.x * threadPos.y) };
     
-    // Ensure we are not overridding memory (if we have n particle,
-    // than the maximum index is one less than the number of particles take 1)
+    // Ensure we are not overridding memory (if we have n particles,
+    // then the maximum index is one less than the number of particles take 1)
     // Out of bounds reads to a buffer are ignored
     if (particleCount - 1 < threadIndex) return;
     
-    // Calculate the force on the object by summing
-    // the contributions of every other particle
+    // Calculate the force on the object by summing the contributions of every other particle
     device float3 &totalForce { forces[threadIndex] };
     const device Particle &particle { particleData[threadIndex] };
     
@@ -85,11 +84,11 @@ kernel void allPairsForceUpdate(constant uint &particleCount             [[ buff
                                 const ushort2 threadPos                  [[ thread_position_in_grid ]],
                                 const ushort2 threadsPerGrid             [[ threads_per_grid ]])
 {
-    // Used to index into the array of particle data
+    // Index into the array of particle data
     const ushort threadIndex { static_cast<ushort>(threadPos.x + threadsPerGrid.x * threadPos.y) };
     
     // Ensure we are not overridding memory (if we have n particles,
-    // than the maximum index is one less than the number of particles take 1)
+    // then the maximum index is one less than the number of particles take 1)
     // Out of bounds reads to a buffer are ignored
     if (particleCount - 1 < threadIndex) return;
     
@@ -124,14 +123,12 @@ typedef struct {
     
 } PFragment;
 
-vertex PFragment ParticleVertexStage(// Reading from the layout arranged through API calls
-                                     const PVertex           vIn                   [[ stage_in ]],
+vertex PFragment ParticleVertexStage(const PVertex           vIn                   [[ stage_in ]],
                                      
                                      // Uniforms across the render pipeline
                                      constant MSUniforms     &uniforms             [[ buffer(1) ]],
                                      
-                                     // The particles we are rendering. Each particle corresponds to a unique
-                                     // instance in the draw call
+                                     // Each particle corresponds to a unique instance in the draw call
                                      const device Particle   *particles            [[ buffer(2) ]],
                                      ushort                  iid                   [[ instance_id ]])
 {
@@ -141,7 +138,7 @@ vertex PFragment ParticleVertexStage(// Reading from the layout arranged through
     // Scale the particle in X, Y, and Z by its size
     world_pos *= uniforms.particleUniforms.particleSize;
     
-    // Finally, translate the point by the center of the particle
+    // Translate the point by the center of the particle
     world_pos += particles[iid].position;
     
     return PFragment {

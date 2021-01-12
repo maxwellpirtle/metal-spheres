@@ -22,8 +22,7 @@ using namespace metal;
 
 namespace PhysicsCompute {
     
-    // Calculates the center of mass of a system of particles. The fourth index in the
-    // vector represents the total mass of the system
+    // Calculates the center of mass of a system of particles
     inline CenterOfMass COM(const thread Particle *particles, ushort pcount)
     {
         auto M_system = 0.0f;
@@ -48,15 +47,11 @@ namespace PhysicsCompute {
     
 #pragma mark - Newtonian Methods -
     
-    /// Computes a new position given a velocity vector,
-    /// increment of time, and previous xposition vector
     inline float3 pos_increment(const device float3 &position, const device float3 &velocity, const device float3 &acceleration, const thread float delta_time)
     {
-        return position + delta_time * velocity; //+ 0.5 * acceleration * delta_time * delta_time;
+        return position + delta_time * velocity;
     }
     
-    /// Computes a new position given a velocity vector,
-    /// increment of time, and previous position vector
     inline float3 vel_increment(const device float3 &velocity, const device float3 &acceleration, const thread float delta_time)
     {
         return velocity + delta_time * acceleration;
@@ -64,7 +59,6 @@ namespace PhysicsCompute {
     
     inline void project_in_time(device Particle &particle, const device float3 &force, const thread float dt)
     {
-        // Increment the position, velocity vector, and acceleration vectors
         const float3 new_pos { pos_increment(particle.position,
                                              particle.velocity,
                                              particle.acceleration,
@@ -76,7 +70,6 @@ namespace PhysicsCompute {
 
         const float3 new_accel { force / particle.mass };
 
-        // Update the reference
         particle.position = new_pos;
         particle.velocity = new_vel;
         particle.acceleration = new_accel;
@@ -86,14 +79,13 @@ namespace PhysicsCompute {
     /// objects with their respective masses and positions due to the second.
     /// The function assumes that the positions are defined within the
     /// same coordinate system. If the particles are at distance 0, the force is
-    /// defined to be 0 (not NaN)
+    /// `NaN`
     inline float3 newtonGravitationalForceOn(const device Particle &objA, const device Particle &objB)
     {
         // Get the unit vector directed from the first to the second.
         // This is the proper direction (attactive after all)
         const auto norm_join_vect { normalize(objB.position - objA.position) };
 
-        // Calculate the magnitude of the force
         const auto scene_distance { distance_squared(objA.position, objB.position) };
         const auto magnitude { GRAVITY_CONSTANT_NORMALIZED * objA.mass * objB.mass / scene_distance };
 
@@ -104,15 +96,13 @@ namespace PhysicsCompute {
     /// objects with their respective charges and positions due to the second.
     /// The function assumes that the positions are defined within the
     /// same coordinate system. If the particles are at distance 0, the force is
-    /// defined to be 0 (not NaN)
+    /// `NaN`
     inline float3 electrostaticForceOn(const device Particle &objA, const device Particle &objB)
     {
-        
         // Get the unit vector directed from the second to the first (away from the first).
         // This is the direction if the particles have the same charge
         const auto norm_join_vect { normalize(objA.position - objB.position) };
         
-        // Calculate the magnitude of the force
         const auto scene_distance { distance_squared(objA.position, objB.position) };
         const auto magnitude { COULOMB_CONSTANT_NORMALIZED * objA.charge * objB.charge / scene_distance };
         

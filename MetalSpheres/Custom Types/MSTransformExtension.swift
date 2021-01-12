@@ -21,19 +21,19 @@ typealias MSAxisScaleVector = simd_float3
 extension RTransform {
     init(position: MSVector, eulerAngles: EulerAngles, scale: MSAxisScaleVector) { self.init(position: position, eulerAngles: eulerAngles, coordinateScales: scale) }
     
-    /// Useful conversition between an `RTransform` and a `matrix_float4x4`
+    /// Useful conversion between an `RTransform` and a `matrix_float4x4`
     var simdMatrix: matrix_float4x4 { .init(transform: self) }
 }
 
 extension RShearTransform {
-    /// Useful conversition between an `RShearTransform` and  a `matrix_float4x4`
+    /// Useful conversion between an `RShearTransform` and  a `matrix_float4x4`
     var simdMatrix: matrix_float4x4 { .init(shearTransform: self) }
 }
 
 extension MSUniforms {
     /// A convenience init
     /// - Returns:
-    ///   A new uniforms instance, or if not camera is present `nil`
+    ///   A new uniforms instance, or `nil` if the scene does not have a camera
     init!(scene: MSParticleScene) {
         // Ensure a camera exists
         guard scene.camera != nil else { return nil }
@@ -47,7 +47,6 @@ extension MSUniforms {
 }
 
 extension MSCameraUniforms {
-    /// Create a new camera uniforms object from a camera node
     init(camera: MSCameraNode) {
         self = .init(cameraPositionInParent: camera.position,
                      worldTransform: camera.simdTransform,

@@ -18,7 +18,7 @@ final class MSModelLoader {
         /// The underlying error object
         var specificError: Error?
         
-        // Cases
+        // Cases \\
         static let unsupportedFileExtension = LoadFailure()
         static let meshFailure = LoadFailure()
         static let fileNotFound = LoadFailure()

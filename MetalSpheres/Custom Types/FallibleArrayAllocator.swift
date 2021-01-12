@@ -25,8 +25,6 @@ import OSLog
 
 @propertyWrapper struct AutoErrorLog<Value> where Value : Error {
     var wrappedValue: Value { didSet { os_log("Localized error, %s", log: log, wrappedValue.localizedDescription) } }
-    
-    /// The log to which error messages are printed
     var log: OSLog
     
     // MARK: Initializer

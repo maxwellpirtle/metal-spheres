@@ -30,8 +30,6 @@ class MetalContentViewController: NSViewController {
     /// Manages the user interaction with the camera
     var lakitu: MSLakitu!
     
-    /// Describes the state of the simulation
-//    var simulationState
     
     // MARK: - View Loaded -
 

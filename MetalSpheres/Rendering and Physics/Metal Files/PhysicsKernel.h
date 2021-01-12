@@ -15,40 +15,24 @@
 
 #define MAX_PARTICLES 2e4
 
-/// A structure that holds information
-/// about a physical object
 typedef struct {
-    
-    /// The mass of the object
     float mass;
-    
-    /// The charge of the particle
     float charge;
     
-    // MARK: - Linear -
+    // MARK: - Linear Motion -
     
-    /// The location of the object in 3D space
     simd_float3 position;
-    
-    /// The rate of change of position, defined
-    /// as a vector within some vector space
     simd_float3 velocity;
-    
-    /// The rate of change of velocity
     simd_float3 acceleration;
     
-    // MARK: - Angular  -
+    // MARK: - Angular Motion  -
     
-    /// The angular velocity vector of the particle
     simd_float3 angular_velocity;
-    
-    /// The angular acceleration vector of the particle
     simd_float3 angular_acceleration;
     
 } Particle;
 
 
-/// Describes the center of mass of a body
 typedef struct CenterOfMass {
     
     /// The location of the center of mass

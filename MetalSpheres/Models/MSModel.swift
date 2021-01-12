@@ -50,22 +50,4 @@ class MSModel {
             }
         }
     }
-
-
-//    func render(with encoder: MTLRenderCommandEncoder) {
-//        for mesh in meshes {
-//            for vb in mesh.mtkMesh.vertexBuffers.map({ $0.buffer }) {
-//                encoder.setVertexBuffer(vb, offset: 0, index: 0)
-//
-//                for submesh in mesh.submeshes {
-//                    let mtkSubmesh = submesh.mtkSubmesh!
-//                    encoder.drawIndexedPrimitives(type: .triangle,
-//                                                  indexCount: mtkSubmesh.indexCount,
-//                                                  indexType: mtkSubmesh.indexType,
-//                                                  indexBuffer: mtkSubmesh.indexBuffer.buffer,
-//                                                  indexBufferOffset: mtkSubmesh.indexBuffer.offset)
-//                }
-//            }
-//        }
-//    }
 }
