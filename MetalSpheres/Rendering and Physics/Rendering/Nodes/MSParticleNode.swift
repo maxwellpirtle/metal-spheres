@@ -23,6 +23,13 @@ class MSParticleNode: MSSpriteNode {
     /// physics body by any means, but merely only specifies information about the node
     private(set) var physicalState: MSPhysicalState = .default()
     
+    // When the position is set, update the position of the physical state
+    override var position: MSVector {
+        didSet {
+            physicalState.position = position
+        }
+    }
+    
     // MARK: - Initializers -
     
     required init(model:                     MSModel?,
@@ -38,13 +45,12 @@ class MSParticleNode: MSSpriteNode {
 
     required init(model: MSModel?, parent: MSNode? = nil, positionInParent position: MSVector = .zero, shearTransform: RShearTransform) {
         super.init(model: model, parent: parent, positionInParent: position, shearTransform: shearTransform)
-        self.physicalState.position = position
         self.physicalState.particle = self
     }
     
-    convenience init(modelType: MSGeometryClass, loader: MSModelLoader, transform: RTransform = .absolute) {
+    convenience init(modelType: MSGeometryClass, loader: MSModelLoader, transform: RTransform = .absolute, physicalState: MSPhysicalState) {
         self.init(model: try! loader.loadModel(geometryClass: modelType), positionInParent: transform.position, eulerAngles: transform.eulerAngles, coordinateScales: transform.coordinateScales)
-        self.physicalState.position = transform.position
+        self.physicalState = physicalState
         self.physicalState.particle = self
     }
     

@@ -34,12 +34,8 @@ final class MSPhysicalState {
     /// The electric charge of the object in Coulombs
     var charge: Coulombs
     
-    /// The position of the object descibed in absolute space
-    var position: simd_float3 {
-        didSet {
-            particle?.position = position
-        }
-    }
+    /// The position of the object described in absolute space
+    var position: simd_float3
     
     /// The velocity of the object described in absolute space
     var velocity: simd_float3

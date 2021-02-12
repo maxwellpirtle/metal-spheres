@@ -27,6 +27,11 @@ class MSNode: NSObject {
     /// The parent node of the parent node (if any)
     final var grandparent: MSNode? { parent?.parent }
     
+    /// Returns the parent node N generations deep (if there is such a node)
+    func parent(at generation: Int) -> MSNode? {
+        generation == 0 ? self : parent?.parent(at: generation - 1)
+    }
+    
     // MARK: - Tranformation Properties -
     
     /*

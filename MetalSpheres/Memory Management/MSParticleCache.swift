@@ -4,7 +4,6 @@
 //
 //  Abstract:
 //  An abstraction over writing data into caches to be used by the particle renderer
-    
 
 import Foundation
 

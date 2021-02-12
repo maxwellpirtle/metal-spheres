@@ -304,25 +304,28 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
         // Since we have modified a resource with `.storageModeManaged` on the GPU,
         // we must encode a blit pass to ensure the contents are well-defined on the CPU
         encodeSynchronizeManagedBuffers(commandBuffer)
-        
+
         // We access the contents of the current channel that is waiting
         // to be scheduled to the GPU. Then, at the end of the function,
         // we make a call to `dispatchPendingChannel()` to ensure that the channel
         // is not reused until the CPU is done with it on another thread
         if let particleCacheForFrame = particleDataCache.pendingChannel {
             defer { particleDataCache.dispatchPendingChannel() }
-
+            
             // In future encodings, we need to ensure that we have the correct number of threads
             // in our dispatches to ensure memory isn't being overwritten and to ensure that
             // particles with zeroed out or undefined values are not overwritten
             particlesInSimulation += particleCacheForFrame.particleChange
-            particleSyncSharedEvent.notify(sharedEventListener, atValue: 1) { [unowned self, particleCacheForFrame] event, value in
-                
+            
+            let value = particleSyncSharedEvent.signaledValue
+            
+            particleSyncSharedEvent.notify(sharedEventListener, atValue: value + 1) { [unowned self, particleCacheForFrame] event, value in
+
                 // Synchronize the GPU/CPU representation of the world
                 unsafelyReadGPUParticleBuffer()
-                unsafelyResolveParticleChannel(channel: particleCacheForFrame)
-                
+
                 // Write these values to the buffer
+                unsafelyResolveParticleChannel(channel: particleCacheForFrame)
                 unsafelyWriteParticleDataIntoGPUBuffers()
                 
                 // Free the channel of its contents for reuse
@@ -333,12 +336,12 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
                 particleCacheForFrame.safelyClearCache()
                 
                 // Continue on
-                event.signaledValue = 2
+                event.signaledValue += 1
             }
             
             // Signal the CPU when the buffer synchronization happens
-            commandBuffer.encodeSignalEvent(particleSyncSharedEvent, value: 1)
-            commandBuffer.encodeWaitForEvent(particleSyncSharedEvent, value: 2)
+            commandBuffer.encodeSignalEvent(particleSyncSharedEvent, value: value + 1)
+            commandBuffer.encodeWaitForEvent(particleSyncSharedEvent, value: value + 2)
         }
     }
 
