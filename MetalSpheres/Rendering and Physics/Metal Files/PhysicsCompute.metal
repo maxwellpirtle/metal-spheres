@@ -75,38 +75,57 @@ namespace PhysicsCompute {
         particle.acceleration = new_accel;
     }
     
-    /// Calculates the gravitational force acting on the first of the two
-    /// objects with their respective masses and positions due to the second.
+    /// Calculates an inverse square force acting in the direction specified.
     /// The function assumes that the positions are defined within the
     /// same coordinate system. If the particles are at distance 0, the force is
-    /// `NaN`
+    /// `NaN` with the fast math compiler flag set
+    inline float3 inv_sqr_force(const thread float3 displacement, const thread float scale)
+    {
+        // An inverse square law is of the form
+        //
+        // vec(F) = C / r^2 * unit_vec(between)
+        //
+        // where r = distance between the two objects.
+        //
+        // This gives us equivalently
+        //
+        // vec(F) = C / r^3 * vec(between)
+        //
+        // Now r = sqrt(r^2), so 1 / r^3 = 1 / (sqrt (r^2))^3 = [ 1 / (sqrt(r^2)) ]^3
+        //
+        // Computing the inverse square root of a value is much faster than computing the distance and simply diving by its cube
+        // since dividing by a runtime value is extremely slow. Hence the reason for the below method
+
+        // r^2
+        const auto sqr_distance = dot(displacement, displacement);
+        
+        // The inverse-distance between the two particles == 1 / sqrt(r^2)
+        const auto inv = rsqrt(sqr_distance);
+        
+        // The inverse cube of the distance == [1 / sqrt(r^2) ]^3
+        const auto inv3 = inv * inv * inv; // ILP
+        
+        // The "magnitude" of the force on the particle. In reality, this is not the true magnitude
+        // but a value that makes the calculation on the GPU much faster (see the above note)
+        const auto pseudo_magnitude { scale * inv3 };
+        
+        return pseudo_magnitude * displacement;
+    }
+    
+    /// Calculates the gravitational force acting on the first of the two
+    /// objects with their respective masses and positions due to the second.
     inline float3 newtonGravitationalForceOn(const device Particle &objA, const device Particle &objB)
     {
-        // Get the unit vector directed from the first to the second.
-        // This is the proper direction (attactive after all)
-        const auto norm_join_vect { normalize(objB.position - objA.position) };
-
-        const auto scene_distance { distance_squared(objA.position, objB.position) };
-        const auto magnitude { GRAVITY_CONSTANT_NORMALIZED * objA.mass * objB.mass / scene_distance };
-
-        return magnitude * norm_join_vect;
+        return inv_sqr_force(objB.position - objA.position, GRAVITY_CONSTANT_NORMALIZED * objA.mass * objB.mass);
     }
     
     /// Calculates the electrostatic force acting on the first of the two
     /// objects with their respective charges and positions due to the second.
-    /// The function assumes that the positions are defined within the
-    /// same coordinate system. If the particles are at distance 0, the force is
-    /// `NaN`
     inline float3 electrostaticForceOn(const device Particle &objA, const device Particle &objB)
     {
-        // Get the unit vector directed from the second to the first (away from the first).
-        // This is the direction if the particles have the same charge
-        const auto norm_join_vect { normalize(objA.position - objB.position) };
-        
-        const auto scene_distance { distance_squared(objA.position, objB.position) };
-        const auto magnitude { COULOMB_CONSTANT_NORMALIZED * objA.charge * objB.charge / scene_distance };
-        
-        return magnitude * norm_join_vect;
+        // Electrostatics dictates that two particles of the same charge repulse; hence the displacement
+        // is defaulted to point away from the first object
+        return inv_sqr_force(objA.position - objB.position, COULOMB_CONSTANT_NORMALIZED * objA.charge * objB.charge);
     }
 }
 

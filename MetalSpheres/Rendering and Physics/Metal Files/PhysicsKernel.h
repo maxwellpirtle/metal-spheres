@@ -19,13 +19,13 @@ typedef struct {
     float mass;
     float charge;
     
-    // MARK: - Linear Motion -
+    // MARK: Linear Motion
     
     simd_float3 position;
     simd_float3 velocity;
     simd_float3 acceleration;
     
-    // MARK: - Angular Motion  -
+    // MARK: Angular Motion
     
     simd_float3 angular_velocity;
     simd_float3 angular_acceleration;

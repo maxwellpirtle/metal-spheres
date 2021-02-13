@@ -53,10 +53,7 @@ class MSRendererCore: NSObject, MTKViewDelegate {
     
     /// The render pass descriptor describing the main rendering pass
     private var mainRenderPassDescriptor: MTLRenderPassDescriptor!
-    
-    /// The pipeline state object describing the current state of rendering affairs for the standard render pass
-//    private var mainPassRenderPipelineState: MTLRenderPipelineState!
-    
+
     /// The depth stencil state object describing the depth texture for perspective drawing
     private var mainPassDepthStencilState: MTLDepthStencilState!
     
