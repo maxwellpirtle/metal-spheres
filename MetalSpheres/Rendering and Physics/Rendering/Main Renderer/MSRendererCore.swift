@@ -27,7 +27,7 @@ class MSRendererCore: NSObject, MTKViewDelegate {
     var framesInFlight: Int { MSConstants.framesInFlight }
     
     /// Describes certain properties of the renderer, such as what is being drawn
-    var state: MSRenderCoreState = .default
+    private var state: MSRenderCoreState = .default
     
     // MARK: - Metal Lifecycle Objects -
     
@@ -269,12 +269,24 @@ class MSRendererCore: NSObject, MTKViewDelegate {
         scene?.viewDidResize(view as! MSSceneView, oldSize: viewSize)
     }
     
+    // MARK: - Rendering State -
+
+    /// Whether or not the particle simulation is paused
+    var isPaused: Bool { particleRenderer.isPaused }
+    
+    /// Whether or not the simulation is rendering particles as points
+    var isRenderingParticlesAsPoints: Bool { particleRenderer.isRenderingParticlesAsPoints }
+    
+    /// Pause/unpause the current particle simulation
+    func pauseSimulation() { particleRenderer.pauseSimulation() }
+    
+    /// Toggles/untoggles point particle rendering
+    func togglePointParticleRendering() { particleRenderer.togglePointParticleRendering() }
+    
     // MARK: - Resource Synchronization -
     
     /// Synchronizes resources with `MTLStorageMode.storageModeShared` attribute
-    private func synchronizeSharedResources() {
-        uniformsGPU.unsafelyWrite(&uniformsCPU)
-    }
+    private func synchronizeSharedResources() { uniformsGPU.unsafelyWrite(&uniformsCPU) }
 }
 
 // MARK: - Errors -

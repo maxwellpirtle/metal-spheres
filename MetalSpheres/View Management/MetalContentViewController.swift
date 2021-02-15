@@ -121,15 +121,30 @@ class MetalContentViewController: NSViewController {
     
     @IBAction func requestedSimulationPause(_ sender: NSMenuItem) {
         
-        let particleRenderer = renderer.particleRenderer!
-        particleRenderer.state.isPaused.negate()
+        // Pause/unpause the current simulation
+        renderer.pauseSimulation()
+        
+        // Query if the simulation is now paused
+        let paused = renderer.isPaused
         
         // If we have requested to pause,
-        sender.title = { (isPaused: Bool) in isPaused ? InteractionConstants.pauseSimulationLabel : InteractionConstants.resumeSimulationLabel }(particleRenderer.state.isPaused)
+        sender.title = { (isPaused: Bool) in isPaused ? InteractionConstants.pauseSimulationLabel : InteractionConstants.resumeSimulationLabel }(paused)
         
     }
     
     @IBAction func toggleCoordinateFrameVisibility(_ sender: NSMenuItem) {
         
+    }
+    
+    @IBAction func togglePointParticleSetting(_ sender: NSMenuItem) {
+
+        // Toggle/untoggle point particles
+        renderer.togglePointParticleRendering()
+        
+        // Query if the simulation is now paused
+        let points = renderer.isRenderingParticlesAsPoints
+        
+        // If we have requested to pause,
+        sender.title = { (points: Bool) in points ? InteractionConstants.togglePointParticleLabel : InteractionConstants.toggleSphericalParticleLabel }(points)
     }
 }

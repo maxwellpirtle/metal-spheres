@@ -27,6 +27,9 @@ struct MSParticleRendererState {
     /// Whether or not electrostatic forces are active
     var isElectromagnetismEnabled = false
     
+    /// Whether or not to draw each particle as a point as opposed to a sphere
+    var pointParticles = true
+    
 
     // MARK: - Methods -
 }

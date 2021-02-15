@@ -14,7 +14,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
     // MARK: - Simulation State -
 
     /// Determines how particle data is updated in the kernel
-    var state: MSParticleRendererState = .default
+    private var state: MSParticleRendererState = .default
 
     /// The collection of particles this renderer is responsible for
     /// along with their indicies into the particle buffer. This property
@@ -45,7 +45,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
     private let preciseComputeBufferPassPipelineState: MTLComputePipelineState
 
     /// Render pipeline state to draw the primitives
-    private let renderPipelineState: MTLRenderPipelineState
+    private let renderPipelineStates: [MTLRenderPipelineState]
 
     /// Returns a reference to the compute pipeline state to use for the current physics compute pass
     ///
@@ -71,6 +71,21 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
         let pipelineIndex = 2 * Int(CBooleanConvert: state.isGravityEnabled) + Int(CBooleanConvert: state.isElectromagnetismEnabled) - 1
 
         return preciseComputePipelineStates[pipelineIndex]
+    }
+    
+    /// Returns a reference to the render pipeline state to use for the current rendering pass
+    ///
+    /// - Returns:
+    ///   A compute render pipeline state
+    private func renderPipelineStateForCurrentSimulation() -> MTLRenderPipelineState? {
+        
+        // The pipeline state for the particular configuration can
+        // be found using the following index method
+        // Point Particles: F -> 0
+        // Point Particles: T -> 1
+        let pipelineIndex = state.pointParticles ? 1 : 0
+        
+        return renderPipelineStates[pipelineIndex]
     }
 
     // MARK:  - Resources -
@@ -146,7 +161,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
                     preciseKernel.label = "Inverse-Square Kernel: Gravity?: \(isGravity) Elec?: \(isElectricity)"
                     preciseComputePipelineStates.append(preciseComputePipelineState)
                 }
-            }()
+            }() // Throwing closure
 
             self.preciseComputePipelineStates = preciseComputePipelineStates
 
@@ -161,10 +176,8 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
         // Render pipeline
         do {
             let rpsd = MTLRenderPipelineDescriptor()
-            rpsd.label = "MSParticleRenderer Render Pipeline"
             rpsd.colorAttachments[0].pixelFormat = engine.view.colorPixelFormat
             rpsd.depthAttachmentPixelFormat = engine.view.depthStencilPixelFormat
-            rpsd.vertexFunction = library.makeFunction(name: "ParticleVertexStage")
             rpsd.fragmentFunction = library.makeFunction(name: "ParticleFragmentStage")
 
             let vertexDescriptor = MTLVertexDescriptor {
@@ -172,8 +185,41 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
                 MTLVertexAttributeDescriptor(attributeIndex: 1, format: .float3, bufferIndex: 0, offset: MTLVertexFormat.float3.stride)
             }
             rpsd.vertexDescriptor = vertexDescriptor
-
-            renderPipelineState = try device.makeRenderPipelineState(descriptor: rpsd)
+            
+            // We reuse a function constants instance and write values
+            // into the bind points for each iteration in the loop
+            let functionConstants = MTLFunctionConstantValues()
+            var renderPipelineStates: [MTLRenderPipelineState] = []
+            
+            try {
+                
+                // All valid combinations of the simulation
+                let combinations =
+                    [   // Point = false
+                        false,
+                        
+                        // Point = true
+                        true,
+                    ]
+                
+                for var renderParticlesAsPoints in combinations {
+                    functionConstants.setConstantValue(&renderParticlesAsPoints, type: .bool, index: 2)
+                    
+                    // Try to create the specialized vertex function and attach it to the descriptor
+                    let vertexFunction = try library.makeFunction(name: "ParticleVertexStage", constantValues: functionConstants)
+                    vertexFunction.label = "Particle vertex function. Point?: \(renderParticlesAsPoints)"
+                    rpsd.label = "MSParticleRenderer Render Pipeline -> Points? \(renderParticlesAsPoints)"
+                    rpsd.vertexFunction = vertexFunction
+                    
+                    if renderParticlesAsPoints { rpsd.vertexDescriptor = nil }
+                    
+                    let renderPipelineState = try device.makeRenderPipelineState(descriptor: rpsd)
+                    renderPipelineStates.append(renderPipelineState)
+                }
+                
+            }() // Throwing closure
+            
+            self.renderPipelineStates = renderPipelineStates
         }
 
         // Metal objects
@@ -317,6 +363,8 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
             // particles with zeroed out or undefined values are not overwritten
             particlesInSimulation += particleCacheForFrame.particleChange
             
+            // Get the value currently set for the shared event. This is important as the
+            // the value must increase monotonically for future frames
             let value = particleSyncSharedEvent.signaledValue
             
             particleSyncSharedEvent.notify(sharedEventListener, atValue: value + 1) { [unowned self, particleCacheForFrame] event, value in
@@ -350,32 +398,57 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
                                 uniforms: MSBuffer<MSUniforms>)
     {
         // If there is nothing to render, end early
-        guard !skipRenderPass else { return }
+        guard !skipRenderPass, let renderPipelineState = renderPipelineStateForCurrentSimulation() else { return }
 
         renderEncoder.pushDebugGroup("Particle rendering")
         renderEncoder.label = "Render particles encoder (instanced)"
         renderEncoder.setRenderPipelineState(renderPipelineState)
-
-        let sharedModel = particles.first!.model!
-
-        for mesh in sharedModel.meshes {
-            for vb in mesh.mtkMesh.vertexBuffers {
-
-                renderEncoder.setVertexBuffer(vb.buffer, offset: 0, index: 0)
-                renderEncoder.setVertexBuffer(uniforms.dynamicBuffer, offset: 0, index: 1)
-                renderEncoder.setVertexBuffer(particleDataPool, offset: 0, index: 2)
-
-                for submesh in mesh.submeshes {
-                    let mtkSubmesh = submesh.mtkSubmesh!
-                    renderEncoder.drawIndexedPrimitives(type: .triangle,
-                                                        indexCount: mtkSubmesh.indexCount,
-                                                        indexType: mtkSubmesh.indexType,
-                                                        indexBuffer: mtkSubmesh.indexBuffer.buffer,
-                                                        indexBufferOffset: mtkSubmesh.indexBuffer.offset,
-                                                        instanceCount: particlesInSimulation)
+        
+        if state.pointParticles { // Particles
+            renderEncoder.setVertexBuffer(uniforms.dynamicBuffer, offset: 0, index: 1)
+            renderEncoder.setVertexBuffer(particleDataPool, offset: 0, index: 2)
+            renderEncoder.drawPrimitives(type: .point,
+                                         vertexStart: 0,
+                                         vertexCount: particlesInSimulation,
+                                         instanceCount: 1)
+        }
+        else { // Spheres
+            
+            let sharedModel = particles.first!.model!
+            
+            for mesh in sharedModel.meshes {
+                for vb in mesh.mtkMesh.vertexBuffers {
+                    renderEncoder.setVertexBuffer(vb.buffer, offset: 0, index: 0)
+                    renderEncoder.setVertexBuffer(uniforms.dynamicBuffer, offset: 0, index: 1)
+                    renderEncoder.setVertexBuffer(particleDataPool, offset: 0, index: 2)
+                    
+                    for submesh in mesh.submeshes {
+                        let mtkSubmesh = submesh.mtkSubmesh!
+                        renderEncoder.drawIndexedPrimitives(type: .triangle,
+                                                            indexCount: mtkSubmesh.indexCount,
+                                                            indexType: mtkSubmesh.indexType,
+                                                            indexBuffer: mtkSubmesh.indexBuffer.buffer,
+                                                            indexBufferOffset: mtkSubmesh.indexBuffer.offset,
+                                                            instanceCount: particlesInSimulation)
+                    }
                 }
             }
         }
+        
         renderEncoder.popDebugGroup()
     }
+    
+    // MARK: - Rendering State -
+    
+    /// Whether or not this simulation is paused
+    var isPaused: Bool { state.isPaused }
+    
+    /// Whether or not particles are rendered as points
+    var isRenderingParticlesAsPoints: Bool { state.pointParticles }
+    
+    /// Pauses the current simulation
+    func pauseSimulation() { state.isPaused.negate() }
+    
+    /// Toggles/untoggles point particle rendering
+    func togglePointParticleRendering() { state.pointParticles.negate() }
 }

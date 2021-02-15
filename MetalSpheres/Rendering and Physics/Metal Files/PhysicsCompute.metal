@@ -13,7 +13,7 @@ using namespace metal;
 #pragma mark - Constants -
 
 #define GRAVITY_CONSTANT 6.67430e-11f
-#define GRAVITY_CONSTANT_NORMALIZED 5.0e-3f
+#define GRAVITY_CONSTANT_NORMALIZED 5.0e-5f
 
 #define COULOMB_CONSTANT 8.9875517923e9f
 #define COULOMB_CONSTANT_NORMALIZED 5.0e-3f

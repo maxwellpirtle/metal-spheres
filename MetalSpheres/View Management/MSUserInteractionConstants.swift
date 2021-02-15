@@ -20,4 +20,7 @@ struct MSUserInteractionConstants {
     
     static let showCoordinateFrame = "Show Frame"
     static let hideCoordinateFrame = "Hide Frame"
+    
+    static let togglePointParticleLabel = "Render particles as points"
+    static let toggleSphericalParticleLabel = "Render particles as spheres"
 }

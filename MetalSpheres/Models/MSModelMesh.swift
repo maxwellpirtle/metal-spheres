@@ -13,8 +13,7 @@ typealias MTKMeshGroup = [MTKMesh]
 typealias MTKSubmeshGroup = [MTKSubmesh]
 typealias MDLMeshGroup = [MDLMesh]
 
-typealias MSModelMeshPartition = MSModelMesh.Partition
-typealias MSMeshPartitionGroup = [MSModelMeshPartition]
+typealias MSMeshPartitionGroup = [MSModelMesh.Partition]
 
 class MSModelMesh {
     
@@ -35,7 +34,7 @@ class MSModelMesh {
         self.mtkMesh = mtkMesh
         self.device = device
         submeshes = zip(mtkMesh.submeshes, mdlMesh.submeshes!).map {
-            let submesh = MSModelMeshPartition(mtkSubmesh: $0, mdlSubmesh: $1 as! MDLSubmesh, msmesh: self)
+            let submesh = Partition(mtkSubmesh: $0, mdlSubmesh: $1 as! MDLSubmesh, msmesh: self)
             return submesh
         }
     }

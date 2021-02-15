@@ -70,6 +70,11 @@
                                                 <action selector="toggleCoordinateFrameVisibility:" target="Ady-hI-5gd" id="h74-Dp-5LF"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Render As Points" keyEquivalent="P" id="97t-sr-Dqt" userLabel="Points">
+                                            <connections>
+                                                <action selector="togglePointParticleSetting:" target="Ady-hI-5gd" id="Mr4-Pe-O1F"/>
+                                            </connections>
+                                        </menuItem>
                                     </items>
                                 </menu>
                             </menuItem>

@@ -23,6 +23,8 @@ using namespace metal;
 namespace {
     constant bool simulateGravity           [[ function_constant(0) ]];
     constant bool simulateElectrostatics    [[ function_constant(1) ]];
+    constant bool pointParticles            [[ function_constant(2) ]];
+    constant bool sphericalParticles = !pointParticles;
     
     /// The amount of time between frames (1/60 of a second expected)
     constant constexpr float simulation_time_step_size = 0.016666666667f;
@@ -96,6 +98,8 @@ kernel void allPairsForceUpdate(constant uint &particleCount             [[ buff
     PhysicsCompute::project_in_time(particleData[threadIndex], forces[threadIndex], simulation_time_step_size);
 }
 
+
+
 #ifdef __METAL_MACOS__
 
 #pragma mark - Render Pipeline -
@@ -103,10 +107,10 @@ kernel void allPairsForceUpdate(constant uint &particleCount             [[ buff
 typedef struct {
     
     /// This position is assumed to be defined within the pre-NDC system, A.K.A model space
-    float3 position [[ attribute(0) ]];
+    float3 position [[ attribute(0), function_constant(sphericalParticles) ]];
     
     /// A normal in the pre-NDC system, A.K.A model space
-    float3 normal   [[ attribute(1) ]];
+    float3 normal   [[ attribute(1), function_constant(sphericalParticles)]];
     
 } PVertex;
 
@@ -123,28 +127,32 @@ typedef struct {
     
 } PFragment;
 
-vertex PFragment ParticleVertexStage(const PVertex           vIn                   [[ stage_in ]],
+vertex PFragment ParticleVertexStage(const PVertex           vIn                   [[ stage_in, function_constant(sphericalParticles) ]],
                                      
                                      // Uniforms across the render pipeline
                                      constant MSUniforms     &uniforms             [[ buffer(1) ]],
                                      
                                      // Each particle corresponds to a unique instance in the draw call
                                      const device Particle   *particles            [[ buffer(2) ]],
-                                     ushort                  iid                   [[ instance_id ]])
+                                     ushort                  vid                   [[ vertex_id, function_constant(pointParticles) ]],
+                                     ushort                  iid                   [[ instance_id, function_constant(sphericalParticles) ]])
 {
     // The vertex handled by this instance of the shader must have its position converted to a world frame (input as model frame)
-    float3 world_pos = modelNDCToWorld3x3 * vIn.position;
-    
+    float3 world_pos = modelNDCToWorld3x3 * (sphericalParticles ? vIn.position : float3(0.0));
+
     // Scale the particle in X, Y, and Z by its size
     world_pos *= uniforms.particleUniforms.particleSize;
     
+    // Determine the index depending on the context
+    const ushort index = pointParticles ? vid : iid;
+
     // Translate the point by the center of the particle
-    world_pos += particles[iid].position;
-    
+    world_pos += particles[index].position;
+
     return PFragment {
         .position = uniforms.cameraUniforms.viewProjectionMatrix * float4(world_pos, 1),
-        .mass = particles[iid].mass,
-        .charge = particles[iid].charge
+        .mass = particles[index].mass,
+        .charge = particles[index].charge
     };
 }
 
