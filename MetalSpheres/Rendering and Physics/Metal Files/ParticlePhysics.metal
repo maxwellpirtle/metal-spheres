@@ -39,9 +39,9 @@ kernel void allPairsKernel(constant uint &particleCount             [[ buffer(0)
                            /// The pool of particle data we read from in this pass
                            const device Particle *particleData      [[ buffer(1) ]],
                            
-                           /// The force acting on each of the particles. A value corresponds to
-                           /// a force on the particle with the same index
-                           device float3 *forces                    [[ buffer(2) ]],
+                           /// The acceleration of each of the particles. A value corresponds to
+                           /// an acceleration of the particle with the same index
+                           device float3 *accelerations             [[ buffer(2) ]],
                            
                            const ushort2 threadPos                  [[ thread_position_in_grid ]],
                            const ushort2 threadsPerGrid             [[ threads_per_grid ]])
@@ -54,24 +54,29 @@ kernel void allPairsKernel(constant uint &particleCount             [[ buffer(0)
     // Out of bounds reads to a buffer are ignored
     if (particleCount - 1 < threadIndex) return;
     
-    // Calculate the force on the object by summing the contributions of every other particle
-    device float3 &totalForce { forces[threadIndex] };
+    // Calculate the acceleration on the particle handled by this thread by summing the contributions of every other particle
+    device float3 &totalAcceleration { accelerations[threadIndex] };
     const device Particle &particle { particleData[threadIndex] };
     
+    // The eletric field vector acting on the particle
+    float3 electrostaticField = float3(0.0, 0.0, 0.0);
+    
     // Zero out whatever value was there
-    totalForce = float3(0.0, 0.0, 0.0);
+    totalAcceleration = float3(0.0, 0.0, 0.0);
     
     for (int i = 0; static_cast<uint>(i) < particleCount; i++) {
-        
-        // Do not compare a particle with itself
-        if (threadIndex == i) continue;
+        const auto relativePosition = particle.position - particleData[i].position;
         
         if (simulateGravity)
-            totalForce += PhysicsCompute::newtonGravitationalForceOn(particle, particleData[i]);
-        
+            totalAcceleration += PhysicsCompute::gravitationalFieldStrengthAt(relativePosition, particleData[i]);
+
         if (simulateElectrostatics)
-            totalForce += PhysicsCompute::electrostaticForceOn(particle, particleData[i]);
+            electrostaticField += PhysicsCompute::electricFieldStrengthAt(relativePosition, particleData[i]);
     }
+    
+    // Add the contribution of the electrostatic field
+    if (simulateElectrostatics)
+        totalAcceleration += particle.charge * electrostaticField / particle.mass; // Slow
 }
 
 kernel void allPairsForceUpdate(constant uint &particleCount             [[ buffer(0) ]],
@@ -79,9 +84,9 @@ kernel void allPairsForceUpdate(constant uint &particleCount             [[ buff
                                 /// The pool of particle data we write to in this pass
                                 device Particle *particleData            [[ buffer(1) ]],
                                 
-                                /// The force acting on each of the particles. A value corresponds to
+                                /// The acceleration of each particle. A value corresponds to
                                 /// a force on the particle with the same index
-                                const device float3 *forces              [[ buffer(2) ]],
+                                const device float3 *accelerations       [[ buffer(2) ]],
                                 
                                 const ushort2 threadPos                  [[ thread_position_in_grid ]],
                                 const ushort2 threadsPerGrid             [[ threads_per_grid ]])
@@ -95,10 +100,8 @@ kernel void allPairsForceUpdate(constant uint &particleCount             [[ buff
     if (particleCount - 1 < threadIndex) return;
     
     // Moving forward in time by 1/60 of a second each cycle
-    PhysicsCompute::project_in_time(particleData[threadIndex], forces[threadIndex], simulation_time_step_size);
+    PhysicsCompute::project_in_time(particleData[threadIndex], accelerations[threadIndex], simulation_time_step_size);
 }
-
-
 
 #ifdef __METAL_MACOS__
 
@@ -139,7 +142,7 @@ vertex PFragment ParticleVertexStage(const PVertex           vIn                
 {
     // The vertex handled by this instance of the shader must have its position converted to a world frame (input as model frame)
     float3 world_pos = modelNDCToWorld3x3 * (sphericalParticles ? vIn.position : float3(0.0));
-
+    
     // Scale the particle in X, Y, and Z by its size
     world_pos *= uniforms.particleUniforms.particleSize;
     
@@ -148,7 +151,7 @@ vertex PFragment ParticleVertexStage(const PVertex           vIn                
 
     // Translate the point by the center of the particle
     world_pos += particles[index].position;
-
+    
     return PFragment {
         .position = uniforms.cameraUniforms.viewProjectionMatrix * float4(world_pos, 1),
         .mass = particles[index].mass,

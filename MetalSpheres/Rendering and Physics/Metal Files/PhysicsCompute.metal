@@ -13,7 +13,7 @@ using namespace metal;
 #pragma mark - Constants -
 
 #define GRAVITY_CONSTANT 6.67430e-11f
-#define GRAVITY_CONSTANT_NORMALIZED 5.0e-5f
+#define GRAVITY_CONSTANT_NORMALIZED 5.0e-3f
 
 #define COULOMB_CONSTANT 8.9875517923e9f
 #define COULOMB_CONSTANT_NORMALIZED 5.0e-3f
@@ -57,7 +57,7 @@ namespace PhysicsCompute {
         return velocity + delta_time * acceleration;
     }
     
-    inline void project_in_time(device Particle &particle, const device float3 &force, const thread float dt)
+    inline void project_in_time(device Particle &particle, const device float3 &acceleration, const thread float dt)
     {
         const float3 new_pos { pos_increment(particle.position,
                                              particle.velocity,
@@ -67,19 +67,17 @@ namespace PhysicsCompute {
         const float3 new_vel { vel_increment(particle.velocity,
                                              particle.acceleration,
                                              dt) };
-
-        const float3 new_accel { force / particle.mass };
-
+        
         particle.position = new_pos;
         particle.velocity = new_vel;
-        particle.acceleration = new_accel;
+        particle.acceleration = acceleration ;
     }
     
     /// Calculates an inverse square force acting in the direction specified.
     /// The function assumes that the positions are defined within the
-    /// same coordinate system. If the particles are at distance 0, the force is
-    /// `NaN` with the fast math compiler flag set
-    inline float3 inv_sqr_force(const thread float3 displacement, const thread float scale)
+    /// same coordinate system. If the particles are at distance 0 (or very close)
+    /// then the force is set to zero
+    inline float3 fast_inv_sqr(const thread float3 displacement, const thread float scale)
     {
         // An inverse square law is of the form
         //
@@ -100,7 +98,7 @@ namespace PhysicsCompute {
         const auto sqr_distance = dot(displacement, displacement);
         
         // The inverse-distance between the two particles == 1 / sqrt(r^2)
-        const auto inv = rsqrt(sqr_distance);
+        const auto inv = sqr_distance <= 0.0001f ? 0.0f : rsqrt(sqr_distance); // Particles close by should not have huge forces applied to them
         
         // The inverse cube of the distance == [1 / sqrt(r^2) ]^3
         const auto inv3 = inv * inv * inv; // ILP
@@ -112,20 +110,18 @@ namespace PhysicsCompute {
         return pseudo_magnitude * displacement;
     }
     
-    /// Calculates the gravitational force acting on the first of the two
+    /// Calculates the acceleration caused by the gravitational force acting on the first of the two
     /// objects with their respective masses and positions due to the second.
-    inline float3 newtonGravitationalForceOn(const device Particle &objA, const device Particle &objB)
+    inline float3 gravitationalFieldStrengthAt(const thread float3 pos, const device Particle &particle)
     {
-        return inv_sqr_force(objB.position - objA.position, GRAVITY_CONSTANT_NORMALIZED * objA.mass * objB.mass);
+        return fast_inv_sqr(pos, -GRAVITY_CONSTANT_NORMALIZED * particle.mass);
     }
     
-    /// Calculates the electrostatic force acting on the first of the two
-    /// objects with their respective charges and positions due to the second.
-    inline float3 electrostaticForceOn(const device Particle &objA, const device Particle &objB)
+    /// Calculates the electric field at the given position with respect to the particle caused by the
+    /// particles charge. This is faster than computing the electrostatic force acting on the particle
+    inline float3 electricFieldStrengthAt(const thread  float3 pos, const device Particle &particle)
     {
-        // Electrostatics dictates that two particles of the same charge repulse; hence the displacement
-        // is defaulted to point away from the first object
-        return inv_sqr_force(objA.position - objB.position, COULOMB_CONSTANT_NORMALIZED * objA.charge * objB.charge);
+        return fast_inv_sqr(pos, COULOMB_CONSTANT_NORMALIZED * particle.charge);
     }
 }
 

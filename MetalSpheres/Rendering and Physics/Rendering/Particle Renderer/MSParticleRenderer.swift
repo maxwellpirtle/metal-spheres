@@ -96,8 +96,8 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
     /// A buffer holding particle data. Allocation size: `MemoryLayout<Particle>.stride * MAX_PARTICLES`
     private var particleDataPool: MTLBuffer!
     
-    /// A buffer holding the forces on each of the particles in the `particleDataPool`. Allocation size: `MemoryLayout<float3>.stride * MAX_PARTICLES`
-    private var particleForcePool: MTLBuffer!
+    /// A buffer holding the acclerations of each of the particles in the `particleDataPool`. Allocation size: `MemoryLayout<float3>.stride * MAX_PARTICLES`
+    private var particleAccelerationPool: MTLBuffer!
 
     /// A set of particles waiting to be added to the universe
     /// This cache can be filled if the scene is mid-render and
@@ -227,7 +227,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
             // We can read and write from the particle buffer, but should not do so for the force buffer; hence the storage modes described.
             // NOTE: Implicitly tracked resources
             particleDataPool        = device.makeBuffer(length: Self.maximumParticlesInSimulation * MemoryLayout<Particle>.stride,        options: .storageModeManaged)
-            particleForcePool       = device.makeBuffer(length: Self.maximumParticlesInSimulation * MemoryLayout<simd_float3>.stride,     options: .storageModePrivate)
+            particleAccelerationPool       = device.makeBuffer(length: Self.maximumParticlesInSimulation * MemoryLayout<simd_float3>.stride,     options: .storageModePrivate)
 
             // Synchronizing the CPU/GPU
             particleSyncSharedEvent = device.makeSharedEvent()
@@ -235,7 +235,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
 
             // Debug names
             particleDataPool.label        = "Particle Simulation Data"
-            particleForcePool.label       = "Particle Force Data"
+            particleAccelerationPool.label       = "Particle Force Data"
             particleSyncSharedEvent.label = "CPU Managed Buffer Safe Access Shared Event"
         }
 
@@ -330,7 +330,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
         // call in the shading langauge is insufficient to prevent undefined behavior
         computeEncoder.setBytes(&particlesInDispatch, length: MemoryLayout<UInt>.stride, index: 0)
         computeEncoder.setBuffer(particleDataPool, offset: 0, index: 1)
-        computeEncoder.setBuffer(particleForcePool, offset: 0, index: 2)
+        computeEncoder.setBuffer(particleAccelerationPool, offset: 0, index: 2)
         computeEncoder.dispatchThreads(dispatchSize, threadsPerThreadgroup: threadsPerThreadgroup)
 
         // In the first phase, we use the contents of the force buffer to write into the particle buffer.
