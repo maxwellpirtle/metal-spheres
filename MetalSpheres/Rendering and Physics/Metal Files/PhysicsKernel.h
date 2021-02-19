@@ -32,6 +32,13 @@ typedef struct {
     
 } Particle;
 
+/// Represents a particle stub
+typedef struct {
+    float mass;
+    float charge;
+    simd_float3 position;
+} ThreadgroupParticle;
+
 
 typedef struct CenterOfMass {
     

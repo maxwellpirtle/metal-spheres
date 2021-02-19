@@ -96,11 +96,35 @@ kernel void allPairsForceUpdate(constant uint &particleCount             [[ buff
     
     // Ensure we are not overridding memory (if we have n particles,
     // then the maximum index is one less than the number of particles take 1)
+    // Out of bounds reads to a buffer are ignored. We move forward in time by 1/60 of a second each cycle
+    particleCount - 1 < threadIndex ? (void) 0 : PhysicsCompute::project_in_time(particleData[threadIndex], accelerations[threadIndex], simulation_time_step_size);
+}
+
+// All-pairs simulation O(n^2) with threadgroup memory
+
+kernel void NBodiesKernel(constant uint &particleCount                          [[ buffer(0) ]],
+                          
+                          /// The pool of particle data we read from in this pass
+                          const device Particle *particleDataLastFrame          [[ buffer(1) ]],
+                          
+                          /// The pool of particle data we write into in this pass
+                          device Particle *particleDataNextFrame                [[ buffer(2) ]],
+                          
+                          /// A shared pool of threadgroup memory that serves as a location
+                          /// to temporarily store chunks of the previous frame's particle data (only the data that is relevant)
+                          threadgroup ThreadgroupParticle *sharedParticleData   [[ threadgroup(0) ]],
+                          
+                          
+                          const ushort2 threadPos                  [[ thread_position_in_grid ]],
+                          const ushort2 threadsPerGrid             [[ threads_per_grid ]])
+{
+    // Index into the array of particle data
+    const ushort threadIndex { static_cast<ushort>(threadPos.x + threadsPerGrid.x * threadPos.y) };
+    
+    // Ensure we are not overridding memory (if we have n particles,
+    // then the maximum index is one less than the number of particles take 1)
     // Out of bounds reads to a buffer are ignored
     if (particleCount - 1 < threadIndex) return;
-    
-    // Moving forward in time by 1/60 of a second each cycle
-    PhysicsCompute::project_in_time(particleData[threadIndex], accelerations[threadIndex], simulation_time_step_size);
 }
 
 #ifdef __METAL_MACOS__
