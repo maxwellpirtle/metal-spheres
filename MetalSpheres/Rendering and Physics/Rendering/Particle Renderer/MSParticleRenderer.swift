@@ -29,12 +29,20 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
 
     /// Whether or not anything should render
     var skipRenderPass: Bool { particlesInSimulation == 0 || particles.count == 0 }
+    
+    /// Whether or not this simulation is paused
+    var isPaused: Bool { state.isPaused }
+    
+    /// Whether or not particles are rendered as points
+    var isRenderingParticlesAsPoints: Bool { state.pointParticles }
+    
+    /// Pauses the current simulation
+    func pauseSimulation() { state.isPaused.negate() }
+    
+    /// Toggles/untoggles point particle rendering
+    func togglePointParticleRendering() { state.pointParticles.negate() }
 
     // MARK: - Metal Internals -
-
-    /// The main renderer that is responsible for issuing commands to
-    /// this renderer, sending command buffers to write into
-    unowned var engine: MSRendererCore
 
     /// The compute pipeline states responsbile for running
     /// the particle simulation with more precision
@@ -109,8 +117,8 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
     /// to remove or to add
     private let particleDataCache: MSParticleCache
 
-    /// A shared event object used to temporarily synchronize the managed resource so that
-    /// we can safely write into it
+    /// A shared event object used to temporarily synchronize the managed resources so that
+    /// we can safely write into them
     private var particleSyncSharedEvent: MTLSharedEvent!
 
     /// Listens to a notification that a shared buffer has been written to
@@ -125,10 +133,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
 
     // MARK: - Initializers -
 
-    init(engine: MSRendererCore, library: MTLLibrary) throws {
-        self.engine = engine
-        let device = engine.device
-
+    init(computeDevice device: MTLDevice, view: MSSceneView, framesInFlight: Int, library: MTLLibrary) throws {
         // Compute Pipeline
         do {
             var preciseComputePipelineStates: [MTLComputePipelineState] = []
@@ -176,8 +181,8 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
         // Render pipeline
         do {
             let rpsd = MTLRenderPipelineDescriptor()
-            rpsd.colorAttachments[0].pixelFormat = engine.view.colorPixelFormat
-            rpsd.depthAttachmentPixelFormat = engine.view.depthStencilPixelFormat
+            rpsd.colorAttachments[0].pixelFormat = view.colorPixelFormat
+            rpsd.depthAttachmentPixelFormat = view.depthStencilPixelFormat
             rpsd.fragmentFunction = library.makeFunction(name: "ParticleFragmentStage")
 
             let vertexDescriptor = MTLVertexDescriptor {
@@ -244,7 +249,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
             // In the worst case scenario, we are adding particle data when have 3 frames
             // full. Therefore, we add one more just in case since we will wait on the
             // GPU anyway
-            let channels = engine.framesInFlight + 1
+            let channels = framesInFlight + 1
             particleDataCache = MSParticleCache(channels: channels)
         }
     }
@@ -305,6 +310,15 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
     {
         // First, we create a new `MTLComputeCommandEncoder` and encode two thread dispatches
         guard let computePipelineState = computePipelineStateForCurrentSimulation() else { return }
+        
+        // Next, we ensure that the number of particles in the simulation is a multiple of the thread
+        // execution width of the given device. This ensures that the GPU computations are effecient.
+        // Without this assumption, we could not ensure that any given thread in a dispatch was reading
+        // proper values
+        guard particlesInSimulation.isMultiple(of: computePipelineState.threadExecutionWidth) else {
+            fatalError("Particles cannot be evenly split into occupied simdgroups. Severe computational costs are associated with such situations on the GPU")
+        }
+        
         guard let computeEncoder = commandBuffer.makeComputeCommandEncoder() else { return }
         computeEncoder.pushDebugGroup("MSParticleRenderer Compute Pass")
         computeEncoder.label = "Inverse Simulation Compute Pass"
@@ -320,26 +334,25 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
         // Calculate the size of the grid. We place 10 times a simdgroup width of particles in any row
         // as a maximum, giving us more than enough room to operate
         var particlesInDispatch = UInt(particlesInSimulation)
-        let particlesPerRow = threadgroupWidth * 10
-        let rows = max(particlesInSimulation / particlesPerRow + 1, threadgroupHeight)
-        let dispatchSize = MTLSize(width: particlesPerRow, height: rows, depth: 1)
+        let rows = max(particlesInSimulation / threadgroupWidth, threadgroupHeight)
+        let dispatchSize = MTLSize(width: threadgroupWidth, height: rows, depth: 1)
 
-        // Encode a thread dispatch to compute the forces on each of the particles. The dispatch writes into the force buffer,
-        // which is then used to write back into the particle buffer. We must do this because the kernel will write
+        // Encode a thread dispatch to compute the accelerations of each of the particles. This dispatch writes into the acceleration buffer,
+        // which is then used to write back into the particle buffer in a DIFFERENT dispatch. We must do this because the kernel will write
         // to EVERY particle in the dispatch, not just those in a single threadgroup. Hence, a simple `threadgroup_barrier`
         // call in the shading langauge is insufficient to prevent undefined behavior
         computeEncoder.setBytes(&particlesInDispatch, length: MemoryLayout<UInt>.stride, index: 0)
         computeEncoder.setBuffer(particleDataPool, offset: 0, index: 1)
         computeEncoder.setBuffer(particleAccelerationPool, offset: 0, index: 2)
         computeEncoder.dispatchThreads(dispatchSize, threadsPerThreadgroup: threadsPerThreadgroup)
-
-        // In the first phase, we use the contents of the force buffer to write into the particle buffer.
-        // If a force value is at index `i`, then this force corresponds to that acting on particle `i` in the
+        
+        // In this phase, we use the contents of the acceleration buffer to write into the particle buffer.
+        // If an acceleration value is at index `i`, then this acceleration corresponds to that of particle `i` in the
         // particle buffer. Note that we can use a single compute command encoder even though both kernels
-        // write into and read from the same buffers because these are thread dispatches and not vertex/fragment programs
-        // as described in "What's New in Metal 2" WWDC
+        // write into and read from the same buffers because these are thread dispatches and not vertex/fragment shaders
+        // as described in "What's New in Metal 2" WWDC 2017
         guard let bufferPassPiplineState = computePipelineStateForCurrentSimulation(writePass: true) else {
-            preconditionFailure("Unexpectedly missing compute state to write particle force values. Execution should not be reached")
+            fatalError("Unexpectedly missing compute state to write particle force values. Execution should not be reached")
         }
         computeEncoder.setComputePipelineState(bufferPassPiplineState)
         computeEncoder.dispatchThreads(dispatchSize, threadsPerThreadgroup: threadsPerThreadgroup)
@@ -384,7 +397,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
                 particleCacheForFrame.safelyClearCache()
                 
                 // Continue on
-                event.signaledValue += 1
+                event.signaledValue = value + 1
             }
             
             // Signal the CPU when the buffer synchronization happens
@@ -437,18 +450,4 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
         
         renderEncoder.popDebugGroup()
     }
-    
-    // MARK: - Rendering State -
-    
-    /// Whether or not this simulation is paused
-    var isPaused: Bool { state.isPaused }
-    
-    /// Whether or not particles are rendered as points
-    var isRenderingParticlesAsPoints: Bool { state.pointParticles }
-    
-    /// Pauses the current simulation
-    func pauseSimulation() { state.isPaused.negate() }
-    
-    /// Toggles/untoggles point particle rendering
-    func togglePointParticleRendering() { state.pointParticles.negate() }
 }

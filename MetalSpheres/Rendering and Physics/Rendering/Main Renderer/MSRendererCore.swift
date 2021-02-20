@@ -110,7 +110,7 @@ class MSRendererCore: NSObject, MTKViewDelegate {
         // Create the other renderers
         
         //-- Particle Renderer --\\
-        particleRenderer = try MSParticleRenderer(engine: self, library: shaderCache)
+        particleRenderer = try MSParticleRenderer(computeDevice: device, view: view, framesInFlight: framesInFlight, library: shaderCache)
         
         do {
             // Create shared resources

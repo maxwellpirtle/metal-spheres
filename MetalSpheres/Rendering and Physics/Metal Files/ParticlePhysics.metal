@@ -26,6 +26,12 @@ namespace {
     constant bool pointParticles            [[ function_constant(2) ]];
     constant bool sphericalParticles = !pointParticles;
     
+//    // Compile shaders with this flag ONLY IF the program can guarantee
+//    // that the number of particles simulated in the scene is a multiple of
+//    // the simdgroup size of the GPU
+//    constant bool optimizeGPUExecution      [[ function_constant(3) ]];
+//    constant bool checkSimdgroupOutOfBounds = !optimizeGPUExecution;
+    
     /// The amount of time between frames (1/60 of a second expected)
     constant constexpr float simulation_time_step_size = 0.016666666667f;
 }
@@ -46,13 +52,18 @@ kernel void allPairsKernel(constant uint &particleCount             [[ buffer(0)
                            const ushort2 threadPos                  [[ thread_position_in_grid ]],
                            const ushort2 threadsPerGrid             [[ threads_per_grid ]])
 {
-    // Index into the array of particle data
+    // Index into the array of particle and acceleration data for this particular thread
     const ushort threadIndex { static_cast<ushort>(threadPos.x + threadsPerGrid.x * threadPos.y) };
     
-    // Ensure we are not overridding memory (if we have n particles,
-    // then the maximum index is one less than the number of particles take 1)
-    // Out of bounds reads to a buffer are ignored
-    if (particleCount - 1 < threadIndex) return;
+//    // Ensure we are not overridding memory (if we have n particles,
+//    // then the maximum index is one less than the number of particles take 1)
+//    // Out of bounds reads to a buffer are ignored
+//    //
+//    // IDEALLY SET THE PARTICLE COUNT TO BE A MULTIPLE OF THE THREAD EXECUTION WIDTH
+//    // This will ensure coherent execution within the simdgroup, and the execution cost will
+//    // be limited to only to the extra registers needed to handle the `if` statement
+//    //
+//    if (checkSimdgroupOutOfBounds && particleCount - 1 < threadIndex) return;
     
     // Calculate the acceleration on the particle handled by this thread by summing the contributions of every other particle
     device float3 &totalAcceleration { accelerations[threadIndex] };
@@ -91,40 +102,107 @@ kernel void allPairsForceUpdate(constant uint &particleCount             [[ buff
                                 const ushort2 threadPos                  [[ thread_position_in_grid ]],
                                 const ushort2 threadsPerGrid             [[ threads_per_grid ]])
 {
-    // Index into the array of particle data
+    // Index into the array of particle and acceleration data for this particular thread
     const ushort threadIndex { static_cast<ushort>(threadPos.x + threadsPerGrid.x * threadPos.y) };
+    
+//    // Ensure we are not overridding memory (if we have n particles,
+//    // then the maximum index is one less than the number of particles take 1)
+//    // Out of bounds reads to a buffer are ignored
+//    //
+//    // IDEALLY SET THE PARTICLE COUNT TO BE A MULTIPLE OF THE THREAD EXECUTION WIDTH
+//    // This will ensure coherent execution within the simdgroup, and the execution cost will
+//    // be limited to only to the extra registers needed to handle the `if` statement
+//    //
+//    if (checkSimdgroupOutOfBounds && particleCount - 1 < threadIndex) return;
     
     // Ensure we are not overridding memory (if we have n particles,
     // then the maximum index is one less than the number of particles take 1)
     // Out of bounds reads to a buffer are ignored. We move forward in time by 1/60 of a second each cycle
-    particleCount - 1 < threadIndex ? (void) 0 : PhysicsCompute::project_in_time(particleData[threadIndex], accelerations[threadIndex], simulation_time_step_size);
+    PhysicsCompute::project_in_time(particleData[threadIndex], accelerations[threadIndex], simulation_time_step_size);
 }
 
 // All-pairs simulation O(n^2) with threadgroup memory
 
-kernel void NBodiesKernel(constant uint &particleCount                          [[ buffer(0) ]],
-                          
-                          /// The pool of particle data we read from in this pass
-                          const device Particle *particleDataLastFrame          [[ buffer(1) ]],
-                          
-                          /// The pool of particle data we write into in this pass
-                          device Particle *particleDataNextFrame                [[ buffer(2) ]],
-                          
-                          /// A shared pool of threadgroup memory that serves as a location
-                          /// to temporarily store chunks of the previous frame's particle data (only the data that is relevant)
-                          threadgroup ThreadgroupParticle *sharedParticleData   [[ threadgroup(0) ]],
-                          
-                          
-                          const ushort2 threadPos                  [[ thread_position_in_grid ]],
-                          const ushort2 threadsPerGrid             [[ threads_per_grid ]])
+kernel void ThreadgroupParticleKernel(constant uint &particleCount                          [[ buffer(0) ]],
+                                      
+                                      /// The pool of particle data we read from in this pass
+                                      const device Particle *particleDataLastFrame          [[ buffer(1) ]],
+                                      
+                                      /// The pool of particle data we write into in this pass
+                                      device Particle *particleDataNextFrame                [[ buffer(2) ]],
+                                      
+                                      /// A shared pool of threadgroup memory that serves as a location
+                                      /// to temporarily store chunks of the previous frame's particle data.
+                                      /// Only the data that is relevant is stored in threadgroup memory as it is limited
+                                      /// to 16KB on macOS
+                                      threadgroup ThreadgroupParticle *sharedParticleData   [[ threadgroup(0) ]],
+                                      
+                                      const ushort2 threadgroupPos             [[ thread_position_in_threadgroup ]],
+                                      const ushort2 threadPos                  [[ thread_position_in_grid ]],
+                                      const ushort2 threadsPerThreadgroup      [[ threads_per_threadgroup ]],
+                                      const ushort2 threadsPerGrid             [[ threads_per_grid ]])
 {
-    // Index into the array of particle data
-    const ushort threadIndex { static_cast<ushort>(threadPos.x + threadsPerGrid.x * threadPos.y) };
+    // The index in the thread dispatch
+    const uint gridIndex { static_cast<ushort>(threadPos.x + threadsPerGrid.x * threadPos.y) };
     
-    // Ensure we are not overridding memory (if we have n particles,
-    // then the maximum index is one less than the number of particles take 1)
-    // Out of bounds reads to a buffer are ignored
-    if (particleCount - 1 < threadIndex) return;
+    // Index into the shared threadgroup memory for this particular thread
+    const ushort threadgroupIndex { static_cast<ushort>(threadgroupPos.x + threadsPerThreadgroup.x * threadgroupPos.y) };
+    const uint threadsInThreadgroup { static_cast<ushort>(threadsPerThreadgroup.x * threadsPerThreadgroup.y) };
+    
+    // Represents the current index in the threadgroup seen by this thread as it walks through the memory
+    thread ushort j = 0;
+    
+    // Represents the particle that is going to be updated by this thread
+    // as well as the acceleration we will update it with
+    device Particle &particleManagedByThisThread = particleDataNextFrame[gridIndex];
+    const float3 particlePos = particleManagedByThisThread.position;
+    float3 acceleration = 0.0;
+    
+    
+    // Imagine the pool of the last frame's particle and acceleration data
+    // as a long line of boxes. We are indexing into this set from
+    // each thread by assigning to each thread to handle any indicies in the buffer
+    // whose modulus with respect to the size of the threadgroup 10 is the thread's index in threadgroup memory (if `i` is this value, we
+    // are dealing with the particle at `i`, `i + threadGroupSize`, `i + 2 * threadGroupSize`, ...
+    // We keep going until the root surpasses the largest index in the grid
+    //
+    // The current index into the array of particle data for this particular thread.
+    // We initially start with the threadgroup index and increment our index by the
+    // size of the threadgroup
+    //
+    // NOTE: The for-loop condition will NOT cause divergent execution since every thread in a simdgroup will
+    // return `false` at the same time as the number of particles is a multiple of the simdgroup size
+    for (uint threadIndex = threadgroupIndex; threadIndex < particleCount - 1; threadIndex += threadsInThreadgroup) {
+
+        // Copy the data from device memory into tile memory
+        const device Particle &thisThreadsThreadgroupParticle = particleDataLastFrame[threadIndex];
+        sharedParticleData[threadgroupIndex] = (ThreadgroupParticle)
+        {
+            .mass = thisThreadsThreadgroupParticle.mass,
+            .charge = thisThreadsThreadgroupParticle.charge,
+            .position = thisThreadsThreadgroupParticle.position,
+        };
+        
+        // Ensure all writes are complete
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+        
+        // Move through the shared threadgroup memory and read from it
+        while (j < threadsInThreadgroup) {
+            
+            // To take advantage of instruction level parallelism (ILP), we write
+            // the statement 8 times, as the number of threads in any threadgroup is always a multiple of 8
+            if (simulateGravity)
+                SIMD_ILP_STATEMENT(acceleration += PhysicsCompute::gravitationalFieldStrengthAt(particlePos - sharedParticleData[j].position, sharedParticleData[j]); j++);
+            
+            if (simulateElectrostatics)
+                // Reset the counter (the gravity loop incremented it)
+                j -= 8;
+                SIMD_ILP_STATEMENT(acceleration += PhysicsCompute::electricFieldStrengthAt(particlePos - sharedParticleData[j].position, sharedParticleData[j]); j++);
+        }
+        
+        // Ensure all reads are complete before moving to the next loop
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+    }
 }
 
 #ifdef __METAL_MACOS__

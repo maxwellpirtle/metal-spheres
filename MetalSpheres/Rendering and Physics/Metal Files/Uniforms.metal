@@ -10,6 +10,15 @@
 
 using namespace metal;
 
+#define SIMD_ILP_STATEMENT(x) x; \
+x; \
+x; \
+x; \
+x; \
+x; \
+x; \
+x;
+
 // MARK: Constants
 
 static constant float4x4 modelNDCToWorld {

@@ -12,8 +12,6 @@ import Relativity
 
 class SimulationScene: MSParticleScene {
     
-    var time: Timer!
-    
     override func didMove(to view: MSSceneView) {
         super.didMove(to: view)
         
@@ -44,13 +42,13 @@ class SimulationScene: MSParticleScene {
         
 //        let source =
         
-        for _  in 0..<10 {
+        for _  in 0..<16_000 {
             let moon = MSParticleNode(modelType: .particle, loader: loader)
             moon.name = "Moon"
             moon.physicalState.mass = random.nextUniform() * 5.0
 //            moon.physicalState.charge = random.nextUniform() * 19.0 //* (unifo.nextBool() ? 1.0 : -1.0)
             
-            moon.coordinateScales = .init(0.02, 0.02, 0.02)
+            moon.coordinateScales = .init(0.04, 0.04, 0.04)
 //            moon.physicalState.charge = 0.1
             //            moon.shearTransform = .init(position: loc,
             //                                        xNew: ObliqueAxis(scale: 1, theta: .pi / 2, phi: .pi / 4),
@@ -62,17 +60,17 @@ class SimulationScene: MSParticleScene {
             addChild(moon)
         }
         
-        for _ in 0..<2000 {
-            let bigMoon = MSParticleNode(modelType: .particle, loader: loader)
-            bigMoon.name = "Moon"
-            bigMoon.physicalState.mass = .random(in: 0.1...5.0)
-            
-            bigMoon.coordinateScales = .init(1, 1, 1)
-            let pos = simd_float3.random(in: -10.0...10.0)
-            bigMoon.position = pos
-            bigMoon.physicalState.velocity = simd_float3(0.0, 0.0, .random(in: 0.0...0.0))
-            addChild(bigMoon)
-        }
+//        for _ in 0..<6400 {
+//            let bigMoon = MSParticleNode(modelType: .particle, loader: loader)
+//            bigMoon.name = "Moon"
+//            bigMoon.physicalState.mass = .random(in: 0.1...5.0)
+//
+//            bigMoon.coordinateScales = .init(1, 1, 1)
+//            let pos = simd_float3.random(in: -10.0...10.0)
+//            bigMoon.position = pos
+//            bigMoon.physicalState.velocity = simd_float3(0.0, 0.0, .random(in: 0.0...0.0))
+//            addChild(bigMoon)
+//        }
         
 //
 //        time = Timer(timeInterval: 5.0, repeats: true, block: { _ in
@@ -86,19 +84,19 @@ class SimulationScene: MSParticleScene {
 //                print("Set")
 //            }
 //        })
-//        RunLoop.main.add(time, forMode: .default)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { [unowned self] in
-
-            for _ in 1...15 {
-                let moon = MSParticleNode(modelType: .particle, loader: loader)
-                moon.name = "Moon"
-                moon.physicalState.mass = 10
-                moon.coordinateScales = .init(0.2, 0.2, 0.2)
-                moon.position = .random(in: -1.0...1.0)
-                addChild(moon)
-            }
-            print("Set")
-        }
+////        RunLoop.main.add(time, forMode: .default)
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { [unowned self] in
+//
+//            for _ in 1...15 {
+//                let moon = MSParticleNode(modelType: .particle, loader: loader)
+//                moon.name = "Moon"
+//                moon.physicalState.mass = 10
+//                moon.coordinateScales = .init(0.2, 0.2, 0.2)
+//                moon.position = .random(in: -1.0...1.0)
+//                addChild(moon)
+//            }
+//            print("Set")
+//        }
         
 //        DispatchQueue.main.asyncAfter(deadline: .now() + 4.001) { [unowned self] in
 //

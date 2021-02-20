@@ -13,7 +13,7 @@
 #import <simd/simd.h>
 #endif
 
-#define MAX_PARTICLES 3e4
+#define MAX_PARTICLES 1e5
 
 typedef struct {
     float mass;

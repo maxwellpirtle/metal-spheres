@@ -13,7 +13,7 @@ using namespace metal;
 #pragma mark - Constants -
 
 #define GRAVITY_CONSTANT 6.67430e-11f
-#define GRAVITY_CONSTANT_NORMALIZED 5.0e-3f
+#define GRAVITY_CONSTANT_NORMALIZED 5.0e-4f
 
 #define COULOMB_CONSTANT 8.9875517923e9f
 #define COULOMB_CONSTANT_NORMALIZED 5.0e-3f
@@ -110,9 +110,14 @@ namespace PhysicsCompute {
         return pseudo_magnitude * displacement;
     }
     
-    /// Calculates the acceleration caused by the gravitational force acting on the first of the two
-    /// objects with their respective masses and positions due to the second.
+    /// Calculates the gravitational acceleration field at the given position relative to the particle
+    /// caused by the particle
     inline float3 gravitationalFieldStrengthAt(const thread float3 pos, const device Particle &particle)
+    {
+        return fast_inv_sqr(pos, -GRAVITY_CONSTANT_NORMALIZED * particle.mass);
+    }
+    
+    inline float3 gravitationalFieldStrengthAt(const thread float3 pos, const threadgroup ThreadgroupParticle &particle)
     {
         return fast_inv_sqr(pos, -GRAVITY_CONSTANT_NORMALIZED * particle.mass);
     }
@@ -120,6 +125,11 @@ namespace PhysicsCompute {
     /// Calculates the electric field at the given position with respect to the particle caused by the
     /// particles charge. This is faster than computing the electrostatic force acting on the particle
     inline float3 electricFieldStrengthAt(const thread  float3 pos, const device Particle &particle)
+    {
+        return fast_inv_sqr(pos, COULOMB_CONSTANT_NORMALIZED * particle.charge);
+    }
+    
+    inline float3 electricFieldStrengthAt(const thread float3 pos, const threadgroup ThreadgroupParticle &particle)
     {
         return fast_inv_sqr(pos, COULOMB_CONSTANT_NORMALIZED * particle.charge);
     }
