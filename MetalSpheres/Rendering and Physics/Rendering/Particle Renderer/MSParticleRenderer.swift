@@ -54,6 +54,10 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
 
     /// Render pipeline state to draw the primitives
     private let renderPipelineStates: [MTLRenderPipelineState]
+    
+    /// An internal capture scope that can be used to asses
+    /// compute pipeline errors in the Xcode Metal Frame Capture interface
+    private var deviceCaptureScope: MTLCaptureScope?
 
     /// Returns a reference to the compute pipeline state to use for the current physics compute pass
     ///
@@ -102,10 +106,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
     private let synchronizationQueue = DispatchQueue(label: "MSParticleRenderer.synchronizationQueue", qos: .userInteractive)
 
     /// A buffer holding particle data. Allocation size: `MemoryLayout<Particle>.stride * MAX_PARTICLES`
-    private var particleDataPool: MTLBuffer!
-    
-    /// A buffer holding the acclerations of each of the particles in the `particleDataPool`. Allocation size: `MemoryLayout<float3>.stride * MAX_PARTICLES`
-    private var particleAccelerationPool: MTLBuffer!
+    private var particleDataPool: MSTileBuffer<Particle>!
 
     /// A set of particles waiting to be added to the universe
     /// This cache can be filled if the scene is mid-render and
@@ -133,7 +134,11 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
 
     // MARK: - Initializers -
 
-    init(computeDevice device: MTLDevice, view: MSSceneView, framesInFlight: Int, library: MTLLibrary) throws {
+    init(computeDevice device: MTLDevice,
+         view: MSSceneView,
+         framesInFlight: Int,
+         library: MTLLibrary) throws
+    {
         // Compute Pipeline
         do {
             var preciseComputePipelineStates: [MTLComputePipelineState] = []
@@ -159,7 +164,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
                     functionConstants.setConstantValue(&isGravity, type: .bool, index: 0)
                     functionConstants.setConstantValue(&isElectricity, type: .bool, index: 1)
 
-                    let preciseKernel               = try library.makeFunction(name: "allPairsKernel", constantValues: functionConstants)
+                    let preciseKernel               = try library.makeFunction(name: "ThreadgroupParticleKernel", constantValues: functionConstants)
                     let preciseComputePipelineState = try device.makeComputePipelineState(function: preciseKernel)
 
                     // Set labels for debugging
@@ -231,17 +236,19 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
         do {
             // We can read and write from the particle buffer, but should not do so for the force buffer; hence the storage modes described.
             // NOTE: Implicitly tracked resources
-            particleDataPool        = device.makeBuffer(length: Self.maximumParticlesInSimulation * MemoryLayout<Particle>.stride,        options: .storageModeManaged)
-            particleAccelerationPool       = device.makeBuffer(length: Self.maximumParticlesInSimulation * MemoryLayout<simd_float3>.stride,     options: .storageModePrivate)
-
+            particleDataPool        = .init(device: device, options: .storageModeManaged, length: Self.maximumParticlesInSimulation * MemoryLayout<Particle>.stride)
+            
             // Synchronizing the CPU/GPU
             particleSyncSharedEvent = device.makeSharedEvent()
             sharedEventListener     = MTLSharedEventListener(dispatchQueue: synchronizationQueue)
 
             // Debug names
-            particleDataPool.label        = "Particle Simulation Data"
-            particleAccelerationPool.label       = "Particle Force Data"
-            particleSyncSharedEvent.label = "CPU Managed Buffer Safe Access Shared Event"
+            particleDataPool.label               = "Particle Simulation Data"
+            particleSyncSharedEvent.label        = "CPU Managed Buffer Safe Access Shared Event"
+            
+            // Capture scope for debugging
+            deviceCaptureScope = MTLCaptureManager.shared().makeCaptureScope(device: device)
+            deviceCaptureScope?.label = "Particle Physics Compute Capture Scope"
         }
 
         // Particle cache
@@ -263,7 +270,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
         }
 
         blitEncoder.label = "Synchronize Managed Particle Data Buffers"
-        blitEncoder.synchronize(resource: particleDataPool)
+        blitEncoder.synchronize(resource: particleDataPool.refreshedBuffer)
         blitEncoder.endEncoding()
     }
 
@@ -285,6 +292,11 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
             particleDataPool.unsafelyWrite(&kernelData)
             particleDataPool.didModifyRange(entireBuffer)
         }
+    }
+    
+    /// Called just before the command buffer is committed on the main thread in `MSRendererCore`
+    func willCommitCommandBuffer(_ commandBuffer: MTLCommandBuffer) {
+        particleDataPool.exchangeReadWriteAssigment()
     }
 
     // MARK: - Simulation -
@@ -324,39 +336,62 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
         computeEncoder.label = "Inverse Simulation Compute Pass"
         computeEncoder.setComputePipelineState(computePipelineState)
 
-        /// Determine the size of a dispatch given the execution width of the pipeline state
-        /// as well as the size of a threadgroup. In macOS, the maxmimum number of threads in
-        /// a single threadgroup is 1024, whereas in iOS/tvOS that number is lower (256)
+        // Determine the size of a dispatch given the execution width of the pipeline state
+        // as well as the size of a threadgroup. In macOS, the maxmimum number of threads in
+        // a single threadgroup is 1024, whereas in iOS/tvOS that number is lower (256)
+        let threadTileMemoryShare = MemoryLayout<ThreadgroupParticle>.stride
         let threadgroupWidth = computePipelineState.threadExecutionWidth
-        let threadgroupHeight = computePipelineState.maxTotalThreadsPerThreadgroup / threadgroupWidth
+        let threadgroupHeight = computePipelineState.maxTotalThreadsPerThreadgroup(threadgroupMemoryPerThread: threadTileMemoryShare) / threadgroupWidth
         let threadsPerThreadgroup = MTLSize(width: threadgroupWidth, height: threadgroupHeight, depth: 1)
+        let threadsInThreadgroup = threadsPerThreadgroup.totalThreads
+        let threadgroupMemoryAllocationLength = threadsInThreadgroup * threadTileMemoryShare
 
         // Calculate the size of the grid. We place 10 times a simdgroup width of particles in any row
         // as a maximum, giving us more than enough room to operate
-        var particlesInDispatch = UInt(particlesInSimulation)
+        let particlesInDispatch = UInt(particlesInSimulation)
         let rows = max(particlesInSimulation / threadgroupWidth, threadgroupHeight)
         let dispatchSize = MTLSize(width: threadgroupWidth, height: rows, depth: 1)
-
+        
+        // Calculate the maximum index that any thread in the entire grid can reach.
+        // The determination is made using the following method:
+        //
+        // Grid of particle data (all particles, each box represents an index into the array)
+        // + ------- + + ------- +
+        // |   P     | |         |
+        // |   A     | |   TG1   |
+        // |   R     | |         |
+        // |   T     | + ------- +
+        // +   I     + |         |
+        // |   C     | |   TG1   |
+        // |   L     | |         |
+        // |   E     | + ------- +
+        // |   S     | |         |
+        // + ------- + |   TG1   |
+        //             |         |
+        //             + ------- + <--- What we are looking for
+        //
+        // Notice that the threadgroups may not exactly partition the array of
+        // particle data. Hence, at some point the threadgroup will not be at full occupancy
+        // and some simdgroups will be without work. However, in the shader, the simdgroups must
+        // execute at least one more time to reach the `threadgroup_barrier()` call in the Metal Shading Langauge
+        // so that the GPU doesn't stall. Hence, the maximum index is that of the array formed by overshooting the
+        // particle data array with threadgroup-sized chunks and seeing where the last chunk lands (its last index)
+        var maxValidThreadgroupIndex: UInt = particlesInDispatch != 0 ? particlesInDispatch - 1 : 0
+        var maxThreadgroupIndex: UInt = {
+            let index = UInt(threadsInThreadgroup).smallestMultiple(greaterThanOrEqualTo: particlesInDispatch)
+            return index != 0 ? index - 1 : 0 // Indexes are zero based (hence, subtract 1)
+        }()
+        
         // Encode a thread dispatch to compute the accelerations of each of the particles. This dispatch writes into the acceleration buffer,
         // which is then used to write back into the particle buffer in a DIFFERENT dispatch. We must do this because the kernel will write
         // to EVERY particle in the dispatch, not just those in a single threadgroup. Hence, a simple `threadgroup_barrier`
         // call in the shading langauge is insufficient to prevent undefined behavior
-        computeEncoder.setBytes(&particlesInDispatch, length: MemoryLayout<UInt>.stride, index: 0)
-        computeEncoder.setBuffer(particleDataPool, offset: 0, index: 1)
-        computeEncoder.setBuffer(particleAccelerationPool, offset: 0, index: 2)
+        computeEncoder.setBytes(&maxValidThreadgroupIndex, length: MemoryLayout<UInt>.stride, index: 0)
+        computeEncoder.setBytes(&maxThreadgroupIndex, length: MemoryLayout<UInt>.stride, index: 1)
+        computeEncoder.setBuffer(particleDataPool.referenceBuffer, offset: 0, index: 2)
+        computeEncoder.setBuffer(particleDataPool.refreshedBuffer, offset: 0, index: 3)
+        computeEncoder.setThreadgroupMemoryLength(threadgroupMemoryAllocationLength, index: 0)
         computeEncoder.dispatchThreads(dispatchSize, threadsPerThreadgroup: threadsPerThreadgroup)
-        
-        // In this phase, we use the contents of the acceleration buffer to write into the particle buffer.
-        // If an acceleration value is at index `i`, then this acceleration corresponds to that of particle `i` in the
-        // particle buffer. Note that we can use a single compute command encoder even though both kernels
-        // write into and read from the same buffers because these are thread dispatches and not vertex/fragment shaders
-        // as described in "What's New in Metal 2" WWDC 2017
-        guard let bufferPassPiplineState = computePipelineStateForCurrentSimulation(writePass: true) else {
-            fatalError("Unexpectedly missing compute state to write particle force values. Execution should not be reached")
-        }
-        computeEncoder.setComputePipelineState(bufferPassPiplineState)
-        computeEncoder.dispatchThreads(dispatchSize, threadsPerThreadgroup: threadsPerThreadgroup)
-
         computeEncoder.popDebugGroup()
         computeEncoder.endEncoding()
 
@@ -388,7 +423,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
                 // Write these values to the buffer
                 unsafelyResolveParticleChannel(channel: particleCacheForFrame)
                 unsafelyWriteParticleDataIntoGPUBuffers()
-                
+
                 // Free the channel of its contents for reuse
                 // We note that we do not need to call this
                 // from the main thread because the particle
@@ -397,7 +432,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
                 particleCacheForFrame.safelyClearCache()
                 
                 // Continue on
-                event.signaledValue = value + 1
+                event.signaledValue += 1
             }
             
             // Signal the CPU when the buffer synchronization happens
@@ -419,22 +454,22 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
         
         if state.pointParticles { // Particles
             renderEncoder.setVertexBuffer(uniforms.dynamicBuffer, offset: 0, index: 1)
-            renderEncoder.setVertexBuffer(particleDataPool, offset: 0, index: 2)
+            renderEncoder.setVertexBuffer(particleDataPool.refreshedBuffer, offset: 0, index: 2)
             renderEncoder.drawPrimitives(type: .point,
                                          vertexStart: 0,
                                          vertexCount: particlesInSimulation,
                                          instanceCount: 1)
         }
         else { // Spheres
-            
+
             let sharedModel = particles.first!.model!
-            
+
             for mesh in sharedModel.meshes {
                 for vb in mesh.mtkMesh.vertexBuffers {
                     renderEncoder.setVertexBuffer(vb.buffer, offset: 0, index: 0)
                     renderEncoder.setVertexBuffer(uniforms.dynamicBuffer, offset: 0, index: 1)
-                    renderEncoder.setVertexBuffer(particleDataPool, offset: 0, index: 2)
-                    
+                    renderEncoder.setVertexBuffer(particleDataPool.refreshedBuffer, offset: 0, index: 2)
+
                     for submesh in mesh.submeshes {
                         let mtkSubmesh = submesh.mtkSubmesh!
                         renderEncoder.drawIndexedPrimitives(type: .triangle,
@@ -447,7 +482,6 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
                 }
             }
         }
-        
         renderEncoder.popDebugGroup()
     }
 }

@@ -20,6 +20,13 @@ extension Int {
     init(CBooleanConvert bool: Bool) { self = bool ? 1 : 0 }
 }
 
+extension UInt {
+    /// Returns the largest multiple of this number that is greater than or equal to the given number
+    func smallestMultiple(greaterThanOrEqualTo value: UInt) -> UInt {
+        value % self == 0 ? value : self * (value / self + 1)
+    }
+}
+
 extension NSView { var aspectRatio: CGFloat { frame.size.height / frame.size.width } }
 
 

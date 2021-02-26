@@ -13,9 +13,13 @@
 		1408526E2502881000DF176B /* Relativity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1408526D2502880200DF176B /* Relativity.framework */; };
 		1408526F2502881000DF176B /* Relativity.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1408526D2502880200DF176B /* Relativity.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		1411C5E8258D214D005B477C /* MSCameraInterfaceParameters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1411C5E7258D214D005B477C /* MSCameraInterfaceParameters.swift */; };
+		1417D6AA25E340AE005ECE7F /* MTLComputeCommandEncoderExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1417D6A925E340AE005ECE7F /* MTLComputeCommandEncoderExtension.swift */; };
 		141A5950256C49740080B1D2 /* Axis.metal in Sources */ = {isa = PBXBuildFile; fileRef = 141A594F256C49740080B1D2 /* Axis.metal */; };
 		141FE8A4258A584D00C7209C /* MetalContentWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141FE8A3258A584D00C7209C /* MetalContentWindowController.swift */; };
 		142031362505BABB00F62098 /* Polygon.metal in Sources */ = {isa = PBXBuildFile; fileRef = 142031352505BABB00F62098 /* Polygon.metal */; };
+		1428634225E20438003DE037 /* MSBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1428634125E20438003DE037 /* MSBuffer.swift */; };
+		1428634525E20489003DE037 /* MSMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1428634425E20489003DE037 /* MSMemory.swift */; };
+		1428634825E205BD003DE037 /* MSBufferPairAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1428634725E205BD003DE037 /* MSBufferPairAllocator.swift */; };
 		142B0B0524FDEAFF0065FBF7 /* MTLVertexAttributeDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142B0B0424FDEAFF0065FBF7 /* MTLVertexAttributeDescriptor.swift */; };
 		142B0B0824FDED450065FBF7 /* ConvenienceExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142B0B0724FDED450065FBF7 /* ConvenienceExtensions.swift */; };
 		14358C2C250048860035C602 /* MSTransformExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14358C2B250048860035C602 /* MSTransformExtension.swift */; };
@@ -34,6 +38,7 @@
 		14500C8325728B370097F615 /* MSUniverseDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14500C8225728B370097F615 /* MSUniverseDelegate.swift */; };
 		145021992573376700FB2460 /* MSParticleNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145021982573376700FB2460 /* MSParticleNode.swift */; };
 		1450219E257412C200FB2460 /* MTLTextureExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1450219D257412C200FB2460 /* MTLTextureExtension.swift */; };
+		1452D36C25E1EFFA001E1009 /* MSTileBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1452D36B25E1EFF9001E1009 /* MSTileBuffer.swift */; };
 		1454256C24F2C0E5005926FB /* MSAppDelegateOSX.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454256B24F2C0E5005926FB /* MSAppDelegateOSX.swift */; };
 		1454256E24F2C0E5005926FB /* MetalContentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454256D24F2C0E5005926FB /* MetalContentViewController.swift */; };
 		1454257024F2C0E6005926FB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1454256F24F2C0E6005926FB /* Assets.xcassets */; };
@@ -42,7 +47,7 @@
 		1454259024F2C710005926FB /* MSModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454258F24F2C710005926FB /* MSModel.swift */; };
 		1454259424F2C79C005926FB /* MSModelLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454259324F2C79C005926FB /* MSModelLoader.swift */; };
 		1454259D24F34340005926FB /* MSScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454259C24F34340005926FB /* MSScene.swift */; };
-		145425A124F345E9005926FB /* MSMemoryAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145425A024F345E9005926FB /* MSMemoryAllocator.swift */; };
+		145425A124F345E9005926FB /* MSBufferRingAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145425A024F345E9005926FB /* MSBufferRingAllocator.swift */; };
 		145C5360255A051B003F582C /* MSParticleRendererState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145C535F255A051B003F582C /* MSParticleRendererState.swift */; };
 		1461B78A25744F5B00D2AAB9 /* MSGeometryClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1461B78925744F5B00D2AAB9 /* MSGeometryClass.swift */; };
 		1465647E257D85E500C43DAF /* MetalExtension.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1465647D257D85E500C43DAF /* MetalExtension.metal */; };
@@ -114,10 +119,14 @@
 		14082257259576DF00DFD511 /* MSUserInteractionConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSUserInteractionConstants.swift; sourceTree = "<group>"; };
 		140852682502880200DF176B /* Relativity.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Relativity.xcodeproj; path = ../../../Swift/Frameworks/Relativity/Relativity.xcodeproj; sourceTree = "<group>"; };
 		1411C5E7258D214D005B477C /* MSCameraInterfaceParameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSCameraInterfaceParameters.swift; sourceTree = "<group>"; };
+		1417D6A925E340AE005ECE7F /* MTLComputeCommandEncoderExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTLComputeCommandEncoderExtension.swift; sourceTree = "<group>"; };
 		141A594F256C49740080B1D2 /* Axis.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Axis.metal; sourceTree = "<group>"; };
 		141FE8A3258A584D00C7209C /* MetalContentWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalContentWindowController.swift; sourceTree = "<group>"; };
 		142031352505BABB00F62098 /* Polygon.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Polygon.metal; sourceTree = "<group>"; };
 		1428118825718EA400A91B61 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		1428634125E20438003DE037 /* MSBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSBuffer.swift; sourceTree = "<group>"; };
+		1428634425E20489003DE037 /* MSMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSMemory.swift; sourceTree = "<group>"; };
+		1428634725E205BD003DE037 /* MSBufferPairAllocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSBufferPairAllocator.swift; sourceTree = "<group>"; };
 		142B0B0424FDEAFF0065FBF7 /* MTLVertexAttributeDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTLVertexAttributeDescriptor.swift; sourceTree = "<group>"; };
 		142B0B0724FDED450065FBF7 /* ConvenienceExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConvenienceExtensions.swift; sourceTree = "<group>"; };
 		14358C2B250048860035C602 /* MSTransformExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MSTransformExtension.swift; sourceTree = "<group>"; };
@@ -136,6 +145,7 @@
 		14500C8225728B370097F615 /* MSUniverseDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSUniverseDelegate.swift; sourceTree = "<group>"; };
 		145021982573376700FB2460 /* MSParticleNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MSParticleNode.swift; sourceTree = "<group>"; };
 		1450219D257412C200FB2460 /* MTLTextureExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTLTextureExtension.swift; sourceTree = "<group>"; };
+		1452D36B25E1EFF9001E1009 /* MSTileBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSTileBuffer.swift; sourceTree = "<group>"; };
 		1454256824F2C0E4005926FB /* MetalSpheres.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MetalSpheres.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1454256B24F2C0E5005926FB /* MSAppDelegateOSX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSAppDelegateOSX.swift; sourceTree = "<group>"; };
 		1454256D24F2C0E5005926FB /* MetalContentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalContentViewController.swift; sourceTree = "<group>"; };
@@ -147,7 +157,7 @@
 		1454258F24F2C710005926FB /* MSModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSModel.swift; sourceTree = "<group>"; };
 		1454259324F2C79C005926FB /* MSModelLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSModelLoader.swift; sourceTree = "<group>"; };
 		1454259C24F34340005926FB /* MSScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSScene.swift; sourceTree = "<group>"; };
-		145425A024F345E9005926FB /* MSMemoryAllocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSMemoryAllocator.swift; sourceTree = "<group>"; };
+		145425A024F345E9005926FB /* MSBufferRingAllocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSBufferRingAllocator.swift; sourceTree = "<group>"; };
 		145C535F255A051B003F582C /* MSParticleRendererState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSParticleRendererState.swift; sourceTree = "<group>"; };
 		146023E625587024006BA9F8 /* Objectives.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Objectives.md; sourceTree = "<group>"; };
 		146023EB2558982C006BA9F8 /* MetalSpheresTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MetalSpheresTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -326,8 +336,12 @@
 		1454259F24F345D5005926FB /* Memory Management */ = {
 			isa = PBXGroup;
 			children = (
-				145425A024F345E9005926FB /* MSMemoryAllocator.swift */,
+				1428634125E20438003DE037 /* MSBuffer.swift */,
+				1428634725E205BD003DE037 /* MSBufferPairAllocator.swift */,
+				145425A024F345E9005926FB /* MSBufferRingAllocator.swift */,
+				1428634425E20489003DE037 /* MSMemory.swift */,
 				14B9FA4C257ACDF1000795E3 /* MSParticleCache.swift */,
+				1452D36B25E1EFF9001E1009 /* MSTileBuffer.swift */,
 				145C5364255A0CFE003F582C /* Layouts */,
 			);
 			path = "Memory Management";
@@ -454,9 +468,10 @@
 				14C8EEBF24F5C32F00BC5D4E /* FallibleArrayAllocator.swift */,
 				14358C2B250048860035C602 /* MSTransformExtension.swift */,
 				14439650257848EC0019DA49 /* MTLBufferExtension.swift */,
+				1417D6A925E340AE005ECE7F /* MTLComputeCommandEncoderExtension.swift */,
+				14442B1D25D87352004D6E77 /* MTLSizeExtension.swift */,
 				1450219D257412C200FB2460 /* MTLTextureExtension.swift */,
 				14A9C81D2502F1AC004B01E8 /* SwiftExtensions.swift */,
-				14442B1D25D87352004D6E77 /* MTLSizeExtension.swift */,
 			);
 			path = "Custom Types";
 			sourceTree = "<group>";
@@ -608,9 +623,11 @@
 				14B9FA4D257ACDF1000795E3 /* MSParticleCache.swift in Sources */,
 				1465647E257D85E500C43DAF /* MetalExtension.metal in Sources */,
 				141FE8A4258A584D00C7209C /* MetalContentWindowController.swift in Sources */,
+				1452D36C25E1EFFA001E1009 /* MSTileBuffer.swift in Sources */,
 				1411C5E8258D214D005B477C /* MSCameraInterfaceParameters.swift in Sources */,
 				14082258259576DF00DFD511 /* MSUserInteractionConstants.swift in Sources */,
 				1454256E24F2C0E5005926FB /* MetalContentViewController.swift in Sources */,
+				1417D6AA25E340AE005ECE7F /* MTLComputeCommandEncoderExtension.swift in Sources */,
 				1454258824F2C489005926FB /* MSRendererCore.swift in Sources */,
 				145021992573376700FB2460 /* MSParticleNode.swift in Sources */,
 				14358C4325025F630035C602 /* MSSpriteNode.swift in Sources */,
@@ -621,19 +638,22 @@
 				14A9C8192502E751004B01E8 /* Uniforms.metal in Sources */,
 				14C8EEC424F5E09700BC5D4E /* MSSceneView.swift in Sources */,
 				14FA4213258AA6F500194D87 /* MSLakitu.swift in Sources */,
-				145425A124F345E9005926FB /* MSMemoryAllocator.swift in Sources */,
+				145425A124F345E9005926FB /* MSBufferRingAllocator.swift in Sources */,
 				14358C412501D70D0035C602 /* MSSceneController.swift in Sources */,
 				1454256C24F2C0E5005926FB /* MSAppDelegateOSX.swift in Sources */,
 				1454259024F2C710005926FB /* MSModel.swift in Sources */,
 				14A9C81E2502F1AC004B01E8 /* SwiftExtensions.swift in Sources */,
 				1408223B2593FF1A00DFD511 /* GKCylindricalVectorDistribution.swift in Sources */,
 				1491821D25000178009CEE8B /* MSNode.swift in Sources */,
+				1428634825E205BD003DE037 /* MSBufferPairAllocator.swift in Sources */,
 				14C80B5A2502F5B9003399A4 /* MDLVertexAttributeDescriptor.swift in Sources */,
 				14A9C81C2502E937004B01E8 /* SimulationScene.swift in Sources */,
+				1428634525E20489003DE037 /* MSMemory.swift in Sources */,
 				14E9F24B250D7E6700FD4631 /* MSFixedCameraNode.swift in Sources */,
 				14B75DA82558A151002FAFAC /* MSPhysicalState.swift in Sources */,
 				1450219E257412C200FB2460 /* MTLTextureExtension.swift in Sources */,
 				14CB15E9256F57E20050EF65 /* MSParticleScene.swift in Sources */,
+				1428634225E20438003DE037 /* MSBuffer.swift in Sources */,
 				14B75DA32558A043002FAFAC /* MSParticleRenderer.swift in Sources */,
 				141A5950256C49740080B1D2 /* Axis.metal in Sources */,
 				1461B78A25744F5B00D2AAB9 /* MSGeometryClass.swift in Sources */,

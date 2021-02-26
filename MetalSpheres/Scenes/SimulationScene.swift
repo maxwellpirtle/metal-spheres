@@ -42,7 +42,7 @@ class SimulationScene: MSParticleScene {
         
 //        let source =
         
-        for _  in 0..<16_000 {
+        for _  in 0..<64_000 {
             let moon = MSParticleNode(modelType: .particle, loader: loader)
             moon.name = "Moon"
             moon.physicalState.mass = random.nextUniform() * 5.0

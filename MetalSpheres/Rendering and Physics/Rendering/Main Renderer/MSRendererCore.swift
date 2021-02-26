@@ -40,7 +40,8 @@ class MSRendererCore: NSObject, MTKViewDelegate {
     /// Held around as loading shaders is somewhat expensive
     private var shaderCache: MTLLibrary!
     
-    /// A dispatch semaphore for managing work
+    /// A dispatch semaphore for restricting access to a pool of Metal buffers with
+    /// storage mode `.storageModeShared` in system memory
     private let semaphore = DispatchSemaphore(value: MSConstants.framesInFlight)
     
     /// A queue to schedule command buffers in parallel
@@ -70,7 +71,7 @@ class MSRendererCore: NSObject, MTKViewDelegate {
     }()
         
     /// A triple-buffer system. Instances write to three different buffers to prevent processor stalls.
-    /// Each `MemoryStore` instance holds reference to a `MSUniforms` instance
+    /// Each `MemoryStore` instance holds reference to an `MSUniforms` instance
     private var uniformsGPU: MSBuffer<MSUniforms>!
     private var uniformsCPU: MSUniforms!
     
@@ -174,7 +175,7 @@ class MSRendererCore: NSObject, MTKViewDelegate {
         guard view.currentDrawable != nil else { return }
         
         // Ensure resource writes can be accomplished
-        semaphore.wait()
+//        semaphore.wait()
 
         // Create a new buffer to submit to the GPU
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
@@ -248,7 +249,8 @@ class MSRendererCore: NSObject, MTKViewDelegate {
     
         //---- CPU/GPU Resource Synchronization and Frame Commit ----\\
         
-        uniformsGPU.allocator.cycleToNextBuffer()
+        uniformsGPU.cycleToNextAvailableBuffer()
+        particleRenderer.willCommitCommandBuffer(commandBuffer)
         
         // Add a scheduler to signal to the render thread execution can continue
         // The closure is explicit about its capture semantics: here, we are

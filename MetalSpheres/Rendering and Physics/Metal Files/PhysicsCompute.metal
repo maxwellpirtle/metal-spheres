@@ -47,17 +47,17 @@ namespace PhysicsCompute {
     
 #pragma mark - Newtonian Methods -
     
-    inline float3 pos_increment(const device float3 &position, const device float3 &velocity, const device float3 &acceleration, const thread float delta_time)
+    inline float3 pos_increment(const device float3 &position, const float3 velocity, const device float3 &acceleration, const thread float delta_time)
     {
         return position + delta_time * velocity;
     }
     
-    inline float3 vel_increment(const device float3 &velocity, const device float3 &acceleration, const thread float delta_time)
+    inline float3 vel_increment(const device float3 &velocity, const float3 acceleration, const thread float delta_time)
     {
         return velocity + delta_time * acceleration;
     }
     
-    inline void project_in_time(device Particle &particle, const device float3 &acceleration, const thread float dt)
+    inline void project_in_time(device Particle &particle, const float3 acceleration, const thread float dt)
     {
         const float3 new_pos { pos_increment(particle.position,
                                              particle.velocity,
