@@ -49,9 +49,6 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
     /// (All-pairs simulation)
     private let preciseComputePipelineStates: [MTLComputePipelineState]
 
-    /// A kernel that writes force data into each particle
-    private let preciseComputeBufferPassPipelineState: MTLComputePipelineState
-
     /// Render pipeline state to draw the primitives
     private let renderPipelineStates: [MTLRenderPipelineState]
     
@@ -66,14 +63,11 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
     ///     set the value to `true`
     /// - Returns:
     ///   A compute pipeline state
-    private func computePipelineStateForCurrentSimulation(writePass: Bool = false) -> MTLComputePipelineState? {
+    private func computePipelineStateForCurrentSimulation() -> MTLComputePipelineState? {
 
         // Ensure that either gravity is enabled or electrostatics are enabled.
         // If both are disabled, return `nil`
         guard state.isSimulatingPhysics else { return nil }
-
-        // Write passes return early
-        if writePass { return preciseComputeBufferPassPipelineState }
 
         // The pipeline state for the particular configuration can
         // be found using the following index method
@@ -174,13 +168,6 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
             }() // Throwing closure
 
             self.preciseComputePipelineStates = preciseComputePipelineStates
-
-            // Kernel to write force values safely
-            do {
-                let forcePass = library.makeFunction(name: "allPairsForceUpdate").unsafelyUnwrapped
-                forcePass.label = "Write Forces Kernel"
-                preciseComputeBufferPassPipelineState = try device.makeComputePipelineState(function: forcePass)
-            }
         }
 
         // Render pipeline

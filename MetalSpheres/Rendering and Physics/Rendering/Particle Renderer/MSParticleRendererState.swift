@@ -29,7 +29,6 @@ struct MSParticleRendererState {
     
     /// Whether or not to draw each particle as a point as opposed to a sphere
     var pointParticles = true
-    
 
     // MARK: - Methods -
 }

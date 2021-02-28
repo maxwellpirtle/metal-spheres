@@ -14,6 +14,7 @@
 #endif
 
 #define MAX_PARTICLES 1e5
+#define MAX_PARTICLE_MASS 5.0f//100.0f
 
 typedef struct {
     float mass;

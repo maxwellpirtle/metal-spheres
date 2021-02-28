@@ -17,6 +17,7 @@
 		141A5950256C49740080B1D2 /* Axis.metal in Sources */ = {isa = PBXBuildFile; fileRef = 141A594F256C49740080B1D2 /* Axis.metal */; };
 		141FE8A4258A584D00C7209C /* MetalContentWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141FE8A3258A584D00C7209C /* MetalContentWindowController.swift */; };
 		142031362505BABB00F62098 /* Polygon.metal in Sources */ = {isa = PBXBuildFile; fileRef = 142031352505BABB00F62098 /* Polygon.metal */; };
+		1426B94E25EB1C1B008FAE0E /* GKFixedRandomSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1426B94D25EB1C1B008FAE0E /* GKFixedRandomSource.swift */; };
 		1428634225E20438003DE037 /* MSBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1428634125E20438003DE037 /* MSBuffer.swift */; };
 		1428634525E20489003DE037 /* MSMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1428634425E20489003DE037 /* MSMemory.swift */; };
 		1428634825E205BD003DE037 /* MSBufferPairAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1428634725E205BD003DE037 /* MSBufferPairAllocator.swift */; };
@@ -123,6 +124,7 @@
 		141A594F256C49740080B1D2 /* Axis.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Axis.metal; sourceTree = "<group>"; };
 		141FE8A3258A584D00C7209C /* MetalContentWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalContentWindowController.swift; sourceTree = "<group>"; };
 		142031352505BABB00F62098 /* Polygon.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Polygon.metal; sourceTree = "<group>"; };
+		1426B94D25EB1C1B008FAE0E /* GKFixedRandomSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GKFixedRandomSource.swift; sourceTree = "<group>"; };
 		1428118825718EA400A91B61 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1428634125E20438003DE037 /* MSBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSBuffer.swift; sourceTree = "<group>"; };
 		1428634425E20489003DE037 /* MSMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSMemory.swift; sourceTree = "<group>"; };
@@ -223,6 +225,7 @@
 			isa = PBXGroup;
 			children = (
 				1408223A2593FF1A00DFD511 /* GKCylindricalVectorDistribution.swift */,
+				1426B94D25EB1C1B008FAE0E /* GKFixedRandomSource.swift */,
 				1492893E256C516800AB762F /* MSConstants.swift */,
 				14DFE73C2576DC9E00B2A169 /* simd_frustrum.swift */,
 			);
@@ -623,6 +626,7 @@
 				14B9FA4D257ACDF1000795E3 /* MSParticleCache.swift in Sources */,
 				1465647E257D85E500C43DAF /* MetalExtension.metal in Sources */,
 				141FE8A4258A584D00C7209C /* MetalContentWindowController.swift in Sources */,
+				1426B94E25EB1C1B008FAE0E /* GKFixedRandomSource.swift in Sources */,
 				1452D36C25E1EFFA001E1009 /* MSTileBuffer.swift in Sources */,
 				1411C5E8258D214D005B477C /* MSCameraInterfaceParameters.swift in Sources */,
 				14082258259576DF00DFD511 /* MSUserInteractionConstants.swift in Sources */,

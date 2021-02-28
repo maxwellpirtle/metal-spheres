@@ -14,126 +14,41 @@ class SimulationScene: MSParticleScene {
     
     override func didMove(to view: MSSceneView) {
         super.didMove(to: view)
-        
-        // Create models and fill the scene
+
+        // We have 64 * 500 = 32_000 particles in our simulation. Note this is
+        // a multiple of the wavefront size on macOS
         let loader = controller.modelLoader
+        let particlesInSimulation = 64 * 500
+        let cylinderRadius: Float = 10.0
+        let cylinderHeight: Float = 0.0
         
-//        let startingLocations: [MSVector] = [.init(-10.0, 0.0, 0.0), .init(10.0, 0.0, 0.0), .init(10.0, -10.0, 0.0), .init(10.0, 10.0, 0.0), .init(0.0, 10.0, 0.0)]
-//
-//
-//        for loc in startingLocations {
-//            let moon = MSParticleNode(modelType: .particle, loader: loader)
-//            moon.name = "Moon"
-//            moon.physicalState.mass = 1000
-//            moon.coordinateScales = .init(0.0625, 0.0625, 0.0625)
-////            moon.shearTransform = .init(position: loc,
-////                                        xNew: ObliqueAxis(scale: 1, theta: .pi / 2, phi: .pi / 4),
-////                                        yNew: ObliqueAxis(scale: 3, theta: .pi / 3, phi: .pi / 4),
-////                                        zNew: ObliqueAxis(scale: 0.5, theta: 0, phi: -.pi / 4))
-//            moon.position = loc
-//            moon.physicalState.position = loc
-//            addChild(moon)
-//        }
+        // Compute position and velocity distributions for this scene
         
-        let source = GKARC4RandomSource()
-        let random = GKGaussianDistribution(randomSource: source, mean: 10.0, deviation: 3.0)
-        print(random.highestValue)
-        let unifo = GKRandomDistribution()
+        // Break the unit circle into 100 different possibilities. We place the points within
+        // a cylinder of radius `cylinderRadius` of height `cylinderHeight`
         
-//        let source =
+        let positionCylindricalDistribution = GKCylindricalVectorDistribution(minRadius: cylinderRadius / 2.0, maxRadius: cylinderRadius, minZ: -cylinderHeight / 2.0, maxZ: cylinderHeight / 2.0)
+//        let velocityCylindricalDistribution = GKCylindricalVectorDistribution(maxRadius: 0.0, minZ: 0.0, maxZ: 0.0)
         
-        for _  in 0..<64_000 {
-            let moon = MSParticleNode(modelType: .particle, loader: loader)
-            moon.name = "Moon"
-            moon.physicalState.mass = random.nextUniform() * 5.0
-//            moon.physicalState.charge = random.nextUniform() * 19.0 //* (unifo.nextBool() ? 1.0 : -1.0)
-            
-            moon.coordinateScales = .init(0.04, 0.04, 0.04)
-//            moon.physicalState.charge = 0.1
-            //            moon.shearTransform = .init(position: loc,
-            //                                        xNew: ObliqueAxis(scale: 1, theta: .pi / 2, phi: .pi / 4),
-            //                                        yNew: ObliqueAxis(scale: 3, theta: .pi / 3, phi: .pi / 4),
-            //                                        zNew: ObliqueAxis(scale: 0.5, theta: 0, phi: -.pi / 4))
-            let pos = simd_float3.random(in: -10.0...10.0)
-            moon.position = pos
-            moon.physicalState.velocity = .random(in: -0.5...0.5)
-            addChild(moon)
+        for _ in 0...1000 {
+            print(positionCylindricalDistribution.nextVector())
         }
         
-//        for _ in 0..<6400 {
-//            let bigMoon = MSParticleNode(modelType: .particle, loader: loader)
-//            bigMoon.name = "Moon"
-//            bigMoon.physicalState.mass = .random(in: 0.1...5.0)
-//
-//            bigMoon.coordinateScales = .init(1, 1, 1)
-//            let pos = simd_float3.random(in: -10.0...10.0)
-//            bigMoon.position = pos
-//            bigMoon.physicalState.velocity = simd_float3(0.0, 0.0, .random(in: 0.0...0.0))
-//            addChild(bigMoon)
-//        }
+        let massDistribution = GKRandomDistribution(lowestValue: 1, highestValue: 100)
         
-//
-//        time = Timer(timeInterval: 5.0, repeats: true, block: { _ in
-//            DispatchQueue.main.async { [unowned self] in
-//                let moon = MSParticleNode(modelType: .particle, loader: loader)
-//                moon.name = "Moon"
-//                moon.physicalState.mass = 100
-//                moon.coordinateScales = .init(0.1, 0.1, 0.1)
-//                moon.position = .random(in: -1.0...1.0)
-//                addChild(moon)
-//                print("Set")
-//            }
-//        })
-////        RunLoop.main.add(time, forMode: .default)
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { [unowned self] in
-//
-//            for _ in 1...15 {
-//                let moon = MSParticleNode(modelType: .particle, loader: loader)
-//                moon.name = "Moon"
-//                moon.physicalState.mass = 10
-//                moon.coordinateScales = .init(0.2, 0.2, 0.2)
-//                moon.position = .random(in: -1.0...1.0)
-//                addChild(moon)
-//            }
-//            print("Set")
-//        }
-        
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 4.001) { [unowned self] in
-//
-//            for _ in 1...2000 {
-//                let moon = MSParticleNode(modelType: .particle, loader: loader)
-//                moon.name = "Moon"
-//                moon.physicalState.mass = 10
-//                moon.coordinateScales = .init(0.2, 0.2, 0.2)
-//                moon.position = .random(in: -1.0...1.0)
-//                addChild(moon)
-//            }
-//            print("Set")
-//        }
-        
-//        renderer.particleRenderer.state.isElectromagnetismEnabled = true
-//        renderer.particleRenderer.state.isGravityEnabled = true
-//
-//        let sum = (0..<800).reduce(Float(0.0)) { prev, _ in
-//            prev + random.nextUniform() * 19.0
-//        }
-//
-//        print(sum / 800)
-        
-//        renderer.particleRenderer.state.isElectromagnetismEnabled = true
+        for i in 0..<particlesInSimulation {
+            let moon = MSParticleNode(modelType: .particle, loader: loader)
+            moon.name = "Moon \(i)"
+            moon.physicalState.mass = massDistribution.nextUniform() * 5.0
+            moon.coordinateScales = .init(0.04, 0.04, 0.04)
+            moon.position = positionCylindricalDistribution.nextVector()
+            moon.physicalState.velocity = .zero//velocityCylindricalDistribution.nextVector()
+            addChild(moon)
+        }
 
-        let camera = MSFixedCameraNode(aspectRatio: Float(view.frame.width / view.frame.height))
+        
+        let camera = MSFixedCameraNode(aspectRatio: Float(view.aspectRatio))
         camera.sphericalCoordinates = .init(r: 20, theta: 0, phi: 1.5 * .pi / 4)
-//        camera.coordinateScales = .init(2.0, 2.0, 2.0)
-        
-//        camera.shearTransform = .init(position: camera.position,
-//                                      xNew: ObliqueAxis(scale: 1.0, theta: 0, phi: .pi / 2),
-//                                      yNew: ObliqueAxis(scale: 1.0, theta: .pi / 2, phi: .pi / 2),
-//                                      zNew: ObliqueAxis(scale: 1.0, theta: 0, phi: 0))
-        
-//        camera.position = .init(0, 5, 0)
-//        camera.eulerAngles.yaw = .pi / 2
-
         addChild(camera)
         
         // Set the camera

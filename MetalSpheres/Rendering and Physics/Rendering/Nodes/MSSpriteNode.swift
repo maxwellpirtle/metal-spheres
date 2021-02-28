@@ -43,6 +43,16 @@ class MSSpriteNode: MSNode {
         self.init(model: try! loader.loadModel(geometryClass: modelType), positionInParent: transform.position, eulerAngles: transform.eulerAngles, coordinateScales: transform.coordinateScales)
     }
     
+    convenience init(modelType: MSGeometryClass,
+                     loader: MSModelLoader,
+                     parent:                    MSNode? = nil,
+                     positionInParent position: MSVector = .zero,
+                     eulerAngles:               EulerAngles = .unrotated,
+                     coordinateScales:          MSAxisScaleVector = .one)
+    {
+        self.init(modelType: modelType, loader: loader, transform: .init(position: position, eulerAngles: eulerAngles, coordinateScales: coordinateScales))
+    }
+    
     /// A factory method that creates a duplicate node that refers to the same model. The node is not immediataely added to the same parent however
     final func newReferenceSprite() -> MSSpriteNode {
         prefersObliqueTransform ?

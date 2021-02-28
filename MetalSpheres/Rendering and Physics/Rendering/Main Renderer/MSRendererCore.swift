@@ -175,7 +175,7 @@ class MSRendererCore: NSObject, MTKViewDelegate {
         guard view.currentDrawable != nil else { return }
         
         // Ensure resource writes can be accomplished
-//        semaphore.wait()
+        semaphore.wait()
 
         // Create a new buffer to submit to the GPU
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }

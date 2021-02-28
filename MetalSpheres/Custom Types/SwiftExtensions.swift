@@ -8,6 +8,7 @@
 
 import AppKit.NSView
 import simd.matrix
+import GameplayKit.GKRandomDistribution
 
 extension String {
     var pathSplit: (name: String, extension: String) {
@@ -27,8 +28,6 @@ extension UInt {
     }
 }
 
-extension NSView { var aspectRatio: CGFloat { frame.size.height / frame.size.width } }
-
 
 extension Array where Element : AnyObject {
     // Moves the element from the second arry into this one
@@ -38,3 +37,35 @@ extension Array where Element : AnyObject {
 extension Bool {
     mutating func negate() { self = !self }
 }
+
+extension Comparable {
+    func clamped(to limits: ClosedRange<Self>) -> Self { min(max(self, limits.lowerBound), limits.upperBound) }
+}
+
+extension ClosedRange where Bound == Float {
+    
+    /// Computes a random value from this range by querying a uniform value from
+    /// the given random source. We map the random source's `nextUniform()` range from [0.0, 1.0]
+    /// to this range's [lowerBound, upperBound]
+    func randomValue(withRandomGenerator random: GKRandom) -> Float {
+        let interpolate = random.nextUniform()
+        return lowerBound * (1.0 - interpolate) + interpolate * upperBound
+    }
+}
+
+extension NSView { var aspectRatio: CGFloat { frame.size.height / frame.size.width } }
+
+extension GKRandomDistribution {
+    /// A distribution that always returns the given value
+    static func uniformDistribution(withValue value: Int) -> GKFixedDistribution { GKFixedDistribution(uniformValue: value) }
+    
+    /// A distribution that always returns the value 0
+    static var zeroDistribution: GKFixedDistribution { .uniformDistribution(withValue: 0) }
+    
+    /// Returns a floating point range with values ranging from the lowest value to the highest value
+    var distributionRange: ClosedRange<Float> { Float(lowestValue)...Float(highestValue) }
+    
+    /// Returns a new random floating point value within the distribution range
+    func nextFloatInDistributionRange() -> Float { distributionRange.randomValue(withRandomGenerator: self) }
+}
+

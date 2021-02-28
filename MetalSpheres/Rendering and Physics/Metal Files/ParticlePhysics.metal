@@ -30,7 +30,7 @@ namespace {
     // that the number of particles simulated in the scene is a multiple of
     // the simdgroup size of the GPU
     constant bool optimizeGPUExecution      [[ function_constant(3) ]];
-    constant bool checkSimdgroupOutOfBounds = false;
+    constant bool checkSimdgroupOutOfBounds = !optimizeGPUExecution;
     
     /// The amount of time between frames (1/60 of a second expected)
     constant constexpr float simulation_time_step_size = 0.016666666667f;
@@ -39,89 +39,6 @@ namespace {
 #pragma mark - Physics Kernel -
 
 // All-pairs simulation O(n^2)
-
-kernel void allPairsKernel(constant uint &particleCount             [[ buffer(0) ]],
-                           
-                           /// The pool of particle data we read from in this pass
-                           const device Particle *particleData      [[ buffer(1) ]],
-                           
-                           /// The acceleration of each of the particles. A value corresponds to
-                           /// an acceleration of the particle with the same index
-                           device float3 *accelerations             [[ buffer(2) ]],
-                           
-                           const ushort2 threadPos                  [[ thread_position_in_grid ]],
-                           const ushort2 threadsPerGrid             [[ threads_per_grid ]])
-{
-    // Index into the array of particle and acceleration data for this particular thread
-    const ushort threadIndex { static_cast<ushort>(threadPos.x + threadsPerGrid.x * threadPos.y) };
-    
-    // Ensure we are not overridding memory (if we have n particles,
-    // then the maximum index is one less than the number of particles take 1)
-    // Out of bounds reads to a buffer are ignored
-    //
-    // IDEALLY SET THE PARTICLE COUNT TO BE A MULTIPLE OF THE THREAD EXECUTION WIDTH
-    // This will ensure coherent execution within the simdgroup, and the execution cost will
-    // be limited to only to the extra registers needed to handle the `if` statement
-    //
-    if (checkSimdgroupOutOfBounds && particleCount - 1 < threadIndex) return;
-    
-    // Calculate the acceleration on the particle handled by this thread by summing the contributions of every other particle
-    device float3 &totalAcceleration { accelerations[threadIndex] };
-    const device Particle &particle { particleData[threadIndex] };
-    
-    // The eletric field vector acting on the particle
-    float3 electrostaticField = float3(0.0, 0.0, 0.0);
-    
-    // Zero out whatever value was there
-    totalAcceleration = float3(0.0, 0.0, 0.0);
-    
-    for (int i = 0; static_cast<uint>(i) < particleCount; i++) {
-        const auto relativePosition = particle.position - particleData[i].position;
-        
-        if (simulateGravity)
-            totalAcceleration += PhysicsCompute::gravitationalFieldStrengthAt(relativePosition, particleData[i]);
-
-        if (simulateElectrostatics)
-            electrostaticField += PhysicsCompute::electricFieldStrengthAt(relativePosition, particleData[i]);
-    }
-    
-    // Add the contribution of the electrostatic field
-    if (simulateElectrostatics)
-        totalAcceleration += particle.charge * electrostaticField / particle.mass; // Slow
-}
-
-kernel void allPairsForceUpdate(constant uint &particleCount             [[ buffer(0) ]],
-                                
-                                /// The pool of particle data we write to in this pass
-                                device Particle *particleData            [[ buffer(1) ]],
-                                
-                                /// The acceleration of each particle. A value corresponds to
-                                /// a force on the particle with the same index
-                                const device float3 *accelerations       [[ buffer(2) ]],
-                                
-                                const ushort2 threadPos                  [[ thread_position_in_grid ]],
-                                const ushort2 threadsPerGrid             [[ threads_per_grid ]])
-{
-    // Index into the array of particle and acceleration data for this particular thread
-    const ushort threadIndex { static_cast<ushort>(threadPos.x + threadsPerGrid.x * threadPos.y) };
-    
-    // Ensure we are not overridding memory (if we have n particles,
-    // then the maximum index is one less than the number of particles take 1)
-    // Out of bounds reads to a buffer are ignored
-    //
-    // IDEALLY SET THE PARTICLE COUNT TO BE A MULTIPLE OF THE THREAD EXECUTION WIDTH
-    // This will ensure coherent execution within the simdgroup, and the execution cost will
-    // be limited to only to the extra registers needed to handle the `if` statement
-    //
-    if (checkSimdgroupOutOfBounds && particleCount - 1 < threadIndex) return;
-    
-    // Ensure we are not overridding memory (if we have n particles,
-    // then the maximum index is one less than the number of particles take 1)
-    // Out of bounds reads to a buffer are ignored. We move forward in time by 1/60 of a second each cycle
-    PhysicsCompute::project_in_time(particleData[threadIndex], accelerations[threadIndex], simulation_time_step_size);
-}
-
-// All-pairs simulation O(n^2) with threadgroup memory
 
 kernel void ThreadgroupParticleKernel(constant uint &maximumValidThreadIndex                [[ buffer(0) ]],
                                       constant uint &maximumThreadIndex                     [[ buffer(1) ]],
@@ -160,7 +77,6 @@ kernel void ThreadgroupParticleKernel(constant uint &maximumValidThreadIndex    
     // Represents the particle that is going to be updated by this thread
     // as well as the acceleration we will update it with
     const device Particle &particleManagedByThisThreadLastFrame = particleDataLastFrame[gridIndex];
-    device Particle &particleManagedByThisThreadNextFrame = particleDataNextFrame[gridIndex];
     const float3 particlePos = particleManagedByThisThreadLastFrame.position;
     float3 acceleration = 0.0;
     
@@ -219,8 +135,13 @@ kernel void ThreadgroupParticleKernel(constant uint &maximumValidThreadIndex    
     }
     
     // Write the value to the particular particle
-    particleManagedByThisThreadNextFrame = particleManagedByThisThreadLastFrame;
+    device Particle &particleManagedByThisThreadNextFrame = particleDataNextFrame[gridIndex];
+    
+    particleManagedByThisThreadNextFrame.position = particleManagedByThisThreadLastFrame.position;
+    particleManagedByThisThreadNextFrame.velocity = particleManagedByThisThreadLastFrame.velocity;
     particleManagedByThisThreadNextFrame.acceleration = acceleration;
+    
+    // Perform the comp.
     PhysicsCompute::project_in_time(particleManagedByThisThreadNextFrame, acceleration, simulation_time_step_size);
 }
 
@@ -241,7 +162,10 @@ typedef struct {
 typedef struct {
     
     /// Normalized position in the scene
-    float4 position [[position]];
+    float4 position  [[ position ]];
+    
+    /// The size of the point particle
+    float point_size [[ point_size, function_constant(pointParticles) ]];
     
     /// The mass of the particle passed to the fragment. This will determine its color
     float mass;
@@ -273,7 +197,14 @@ vertex PFragment ParticleVertexStage(const PVertex           vIn                
     // Translate the point by the center of the particle
     world_pos += particles[index].position;
     
-    return PFragment {
+    return pointParticles ?
+    PFragment {
+        .position = uniforms.cameraUniforms.viewProjectionMatrix * float4(world_pos, 1),
+        .point_size = 4.0,
+        .mass = particles[index].mass,
+        .charge = particles[index].charge
+    } :
+    PFragment {
         .position = uniforms.cameraUniforms.viewProjectionMatrix * float4(world_pos, 1),
         .mass = particles[index].mass,
         .charge = particles[index].charge
@@ -282,12 +213,9 @@ vertex PFragment ParticleVertexStage(const PVertex           vIn                
 
 fragment half4 ParticleFragmentStage(const PFragment pf [[ stage_in ]])
 {
-    // Hardcoded for now
-    constexpr float maximumMass = 5.0;
     constexpr half4 lightColor = half4(0.0, 0.0, 1.0, 1.0);
     constexpr half4 darkColor = half4(1.0, 0.0, 0.0, 1.0);
-    const half massRatio { half(pf.mass / maximumMass) };
-    
+    const half massRatio { half(pf.mass / MAX_PARTICLE_MASS) };
     return interpolate(lightColor, darkColor, massRatio);
 }
 
@@ -295,12 +223,6 @@ fragment half4 ParticleFragmentStage(const PFragment pf [[ stage_in ]])
 
 #pragma mark - Tile-based Deferred Rendering Pipeline -
 
-vertex void some() {
-    
-}
-
-fragment void d() {
-    
-}
+// To be implemented
 
 #endif // __METAL_MACOS__
