@@ -47,12 +47,12 @@ namespace PhysicsCompute {
     
 #pragma mark - Newtonian Methods -
     
-    inline float3 pos_increment(const device float3 &position, const float3 velocity, const device float3 &acceleration, const thread float delta_time)
+    METAL_FUNC float3 pos_increment(const device float3 &position, const float3 velocity, const device float3 &acceleration, const thread float delta_time)
     {
         return position + delta_time * velocity;
     }
     
-    inline float3 vel_increment(const device float3 &velocity, const float3 acceleration, const thread float delta_time)
+    METAL_FUNC float3 vel_increment(const device float3 &velocity, const float3 acceleration, const thread float delta_time)
     {
         return velocity + delta_time * acceleration;
     }
@@ -70,7 +70,7 @@ namespace PhysicsCompute {
         
         particle.position = new_pos;
         particle.velocity = new_vel;
-        particle.acceleration = acceleration ;
+        particle.acceleration = acceleration;
     }
     
     /// Calculates an inverse square force acting in the direction specified.

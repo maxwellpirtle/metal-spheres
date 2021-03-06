@@ -23,5 +23,8 @@ extension MTLComputePipelineState {
     /// Computes the largest number of threads in a threadgroup under the
     /// threadgroup memory allocation limit if each thread is to have the given
     /// amount of dedicated threadgroup memory
-    func maxTotalThreadsPerThreadgroup(threadgroupMemoryPerThread tmpt: Int) -> Int { min(maxTotalThreadsPerThreadgroup, maximumThreadgroupMemoryAllocation / tmpt)  /* Integer division `floor` function effect intended */ }
+    func maxTotalThreadsPerThreadgroup(threadgroupMemoryPerThread tmpt: Int, compileTimeThreadgroupMemoryInUse cttm: Int = 0) -> Int {
+        /* Integer division `floor` function effect intended */
+        min(maxTotalThreadsPerThreadgroup, (maximumThreadgroupMemoryAllocation - cttm) / tmpt)
+    }
 }

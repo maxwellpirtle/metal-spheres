@@ -36,6 +36,7 @@
 		1442DECF255B76ED0009980E /* PhysicsCompute.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1442DECE255B76ED0009980E /* PhysicsCompute.metal */; };
 		14439651257848EC0019DA49 /* MTLBufferExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14439650257848EC0019DA49 /* MTLBufferExtension.swift */; };
 		14442B1E25D87352004D6E77 /* MTLSizeExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14442B1D25D87352004D6E77 /* MTLSizeExtension.swift */; };
+		144F217F25EC448100A63905 /* simdExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 144F217E25EC448100A63905 /* simdExtensions.swift */; };
 		14500C8325728B370097F615 /* MSUniverseDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14500C8225728B370097F615 /* MSUniverseDelegate.swift */; };
 		145021992573376700FB2460 /* MSParticleNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145021982573376700FB2460 /* MSParticleNode.swift */; };
 		1450219E257412C200FB2460 /* MTLTextureExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1450219D257412C200FB2460 /* MTLTextureExtension.swift */; };
@@ -144,6 +145,7 @@
 		1442DECE255B76ED0009980E /* PhysicsCompute.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = PhysicsCompute.metal; sourceTree = "<group>"; };
 		14439650257848EC0019DA49 /* MTLBufferExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTLBufferExtension.swift; sourceTree = "<group>"; };
 		14442B1D25D87352004D6E77 /* MTLSizeExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTLSizeExtension.swift; sourceTree = "<group>"; };
+		144F217E25EC448100A63905 /* simdExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = simdExtensions.swift; sourceTree = "<group>"; };
 		14500C8225728B370097F615 /* MSUniverseDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSUniverseDelegate.swift; sourceTree = "<group>"; };
 		145021982573376700FB2460 /* MSParticleNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MSParticleNode.swift; sourceTree = "<group>"; };
 		1450219D257412C200FB2460 /* MTLTextureExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTLTextureExtension.swift; sourceTree = "<group>"; };
@@ -475,6 +477,7 @@
 				14442B1D25D87352004D6E77 /* MTLSizeExtension.swift */,
 				1450219D257412C200FB2460 /* MTLTextureExtension.swift */,
 				14A9C81D2502F1AC004B01E8 /* SwiftExtensions.swift */,
+				144F217E25EC448100A63905 /* simdExtensions.swift */,
 			);
 			path = "Custom Types";
 			sourceTree = "<group>";
@@ -632,6 +635,7 @@
 				14082258259576DF00DFD511 /* MSUserInteractionConstants.swift in Sources */,
 				1454256E24F2C0E5005926FB /* MetalContentViewController.swift in Sources */,
 				1417D6AA25E340AE005ECE7F /* MTLComputeCommandEncoderExtension.swift in Sources */,
+				144F217F25EC448100A63905 /* simdExtensions.swift in Sources */,
 				1454258824F2C489005926FB /* MSRendererCore.swift in Sources */,
 				145021992573376700FB2460 /* MSParticleNode.swift in Sources */,
 				14358C4325025F630035C602 /* MSSpriteNode.swift in Sources */,
@@ -833,8 +837,8 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MTL_LANGUAGE_REVISION = Metal22;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MTL_LANGUAGE_REVISION = Metal23;
 				PRODUCT_BUNDLE_IDENTIFIER = com.3Labs.MetalSpheres;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUN_CLANG_STATIC_ANALYZER = YES;
@@ -860,8 +864,8 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MTL_LANGUAGE_REVISION = Metal22;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MTL_LANGUAGE_REVISION = Metal23;
 				PRODUCT_BUNDLE_IDENTIFIER = com.3Labs.MetalSpheres;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUN_CLANG_STATIC_ANALYZER = YES;

@@ -7,7 +7,6 @@
     
 import MetalKit
 import Relativity
-import Accelerate.vecLib
 
 class MSRendererCore: NSObject, MTKViewDelegate {
     
@@ -37,15 +36,21 @@ class MSRendererCore: NSObject, MTKViewDelegate {
     /// The central command queue for scheduling work to the GPU
     private(set) var commandQueue: MTLCommandQueue!
     
-    /// Held around as loading shaders is somewhat expensive
-    private var shaderCache: MTLLibrary!
-    
     /// A dispatch semaphore for restricting access to a pool of Metal buffers with
     /// storage mode `.storageModeShared` in system memory
     private let semaphore = DispatchSemaphore(value: MSConstants.framesInFlight)
     
     /// A queue to schedule command buffers in parallel
     private let workQueue = DispatchQueue(label: "MSRendererCore.DispatchQueue", qos: .userInteractive)
+    
+    /// A debugging capture scope descriptor that brings the next render pass command
+    /// encoding into the Xcode Metal Debugger view
+    private lazy var debuggingCaptureDescriptor: MTLCaptureDescriptor = {
+        let debuggingCaptureDescriptor = MTLCaptureDescriptor()
+        debuggingCaptureDescriptor.destination = .developerTools
+        debuggingCaptureDescriptor.captureObject = commandQueue
+        return debuggingCaptureDescriptor
+    }()
     
     // MARK: - Render States -
     
@@ -96,13 +101,15 @@ class MSRendererCore: NSObject, MTKViewDelegate {
         
         commandQueue = device.makeCommandQueue()
         commandQueue.label = "Main render processing pipeline"
-        shaderCache = device.makeDefaultLibrary()
+        
+        // Load the shaders on this particular device
+        let shaderCache = device.makeDefaultLibrary()!
         
         setDepthStencilStates()
         setRenderPassDescriptors()
         
         do {
-            try setRenderPipelineStates()
+            try setRenderPipelineStates(shaderCache: shaderCache)
         }
         catch let error {
             throw MSRendererError(case: .MTLRenderPipeline, error: error)
@@ -129,7 +136,7 @@ class MSRendererCore: NSObject, MTKViewDelegate {
         mainRenderPassDescriptor = view.currentRenderPassDescriptor
     }
 
-    private func setRenderPipelineStates() throws {
+    private func setRenderPipelineStates(shaderCache: MTLLibrary?) throws {
         guard let library = shaderCache,
               let vertexAxis = library.makeFunction(name: "axis_vertex"),
               let fragmentAxis = library.makeFunction(name: "axis_fragment")
@@ -176,6 +183,9 @@ class MSRendererCore: NSObject, MTKViewDelegate {
         
         // Ensure resource writes can be accomplished
         semaphore.wait()
+        
+        // Check if we are doing a debug capture
+        startCapturingFrameIfQueried()
 
         // Create a new buffer to submit to the GPU
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
@@ -263,6 +273,9 @@ class MSRendererCore: NSObject, MTKViewDelegate {
         commandBuffer.present(view.currentDrawable!)
         commandBuffer.commit()
         
+        // Stop the frame capture (if one was in progress)
+        stopCapturingFrameIfNecessary()
+        
         //---- End ----\\
     }
     
@@ -289,6 +302,25 @@ class MSRendererCore: NSObject, MTKViewDelegate {
     
     /// Synchronizes resources with `MTLStorageMode.storageModeShared` attribute
     private func synchronizeSharedResources() { uniformsGPU.unsafelyWrite(&uniformsCPU) }
+    
+    // MARK: - Debugging -
+    
+    /// Begins a capture scope if we have been flagged to do so
+    private func startCapturingFrameIfQueried() {
+        if state.captureCommandsInXcodeNextFrame {
+            do { try MTLCaptureManager.shared().startCapture(with: debuggingCaptureDescriptor) } catch let error { assertionFailure("Could not successfully begin programmatic frame capture. Error: " + error.localizedDescription) }
+        }
+
+    }
+    /// Ends the capture scope that started from a call to `startCapturingFrameIfQueried()` that was successful.
+    /// Further, we assume that the flag is emphemeral (that is, for a single frame) and is thus reset with this call
+    private func stopCapturingFrameIfNecessary() {
+        if state.captureCommandsInXcodeNextFrame { MTLCaptureManager.shared().stopCapture() }
+        
+        // We've captured the frame (presumably), so we reset the flag so that
+        // we don't accidentally capture another frame programmatically
+        state.captureCommandsInXcodeNextFrame = false
+    }
 }
 
 // MARK: - Errors -

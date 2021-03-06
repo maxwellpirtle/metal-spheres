@@ -15,4 +15,6 @@ struct MSRenderCoreState {
     /// Whether or not the coordinate axis should be drawn
     var drawsCoordinateSystem = false
     
+    /// Whether or not the next frame should be captured in Xcode for debugging purposes
+    var captureCommandsInXcodeNextFrame = false
 }

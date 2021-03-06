@@ -7,6 +7,7 @@
     
 
 import GameplayKit.GKRandomDistribution
+import Relativity
 
 /// A `GKCylindricalVectorDistribution` describes a distribution of 3D vector
 /// components in cylindrical coordinates. Each component's magnitude is described
@@ -17,7 +18,7 @@ final class GKCylindricalVectorDistribution: NSObject {
     private(set) var thetaDistribution: GKRandomDistribution
     private(set) var zDistribution: GKRandomDistribution
     
-    // The range of radii values
+    // The range of coordinate values we can choose from
     private(set) var radii: ClosedRange<Float>
     private(set) var zValues: ClosedRange<Float>
     private(set) var thetaValues: ClosedRange<Float>
@@ -43,10 +44,10 @@ final class GKCylindricalVectorDistribution: NSObject {
     
     /// Creates a new vector distribution whose components extend to the given values.
     /// The range from 0.0 to a particular value is split according to the granularity
-    convenience init(minRadius: Float = 0.0, maxRadius: Float, maxTheta: Float = 2 * .pi, minZ: Float, maxZ: Float, granularity: Int = 200)
+    convenience init(minRadius: Float = 0.0, maxRadius: Float, minTheta: Float = 0.0, maxTheta: Float = 2 * .pi, minZ: Float, maxZ: Float, granularity: Int = 200)
     {
         self.init(radii: minRadius...maxRadius,
-                  thetaValues: 0.0...maxTheta,
+                  thetaValues: minTheta...maxTheta,
                   zValues: minZ...maxZ,
                   radialDistribution: .init(lowestValue: 0, highestValue: granularity),
                   thetaDistribution: .init(lowestValue: 0, highestValue: granularity),
@@ -55,15 +56,29 @@ final class GKCylindricalVectorDistribution: NSObject {
     
     /// Returns a new randomized vector
     func nextVector() -> SIMD3<Float> {
+        let (r, theta, z): (Float, Float, Float) = {
+            let vector = nextCoordinateVector()
+            return (vector.x, vector.y, vector.z)
+        }()
+        return CylindricalCoordinates(r: r, theta: theta, z: z).cartesianCoordinates()
+    }
+    
+    /// Returns a new randomized coordinate vector. In this case, the components of the
+    /// vector that is returned represent the cylindrical coordinates of a point, rather than
+    /// the Cartesian coordinates of that point
+    func nextCoordinateVector() -> SIMD3<Float> {
         let r = radii.randomValue(withRandomGenerator: radialDistribution)
         let theta = thetaValues.randomValue(withRandomGenerator: thetaDistribution)
         let z = zValues.randomValue(withRandomGenerator: zDistribution)
-        
-        // Calculate the unit vectors
-        let rHat = simd_float3(cos(theta), sin(theta), 0)
-        let zHat = simd_float3(0, 0, 1)
-        
-        return r * rHat + z * zHat
+        return SIMD3<Float>(r, theta, z)
+    }
+    
+    /// Returns a new randomized velocity vector whose components represent
+    /// velocities in the e_r, e_0, and e_z directions encoded in the transformation, respectively
+    func nextVelocityVector(atPoint point: CylindricalCoordinates) -> SIMD3<Float> {
+        let velocityComponents = nextCoordinateVector()
+        let transform = simd_float3x3(angleMappedXAxisMakesWithAbsoluteXAxis: Angle(radians: Double(point.theta)))
+        return transform * velocityComponents
     }
 }
 

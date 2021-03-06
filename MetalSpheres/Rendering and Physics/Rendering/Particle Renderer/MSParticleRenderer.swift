@@ -51,10 +51,6 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
 
     /// Render pipeline state to draw the primitives
     private let renderPipelineStates: [MTLRenderPipelineState]
-    
-    /// An internal capture scope that can be used to asses
-    /// compute pipeline errors in the Xcode Metal Frame Capture interface
-    private var deviceCaptureScope: MTLCaptureScope?
 
     /// Returns a reference to the compute pipeline state to use for the current physics compute pass
     ///
@@ -232,10 +228,6 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
             // Debug names
             particleDataPool.label               = "Particle Simulation Data"
             particleSyncSharedEvent.label        = "CPU Managed Buffer Safe Access Shared Event"
-            
-            // Capture scope for debugging
-            deviceCaptureScope = MTLCaptureManager.shared().makeCaptureScope(device: device)
-            deviceCaptureScope?.label = "Particle Physics Compute Capture Scope"
         }
 
         // Particle cache

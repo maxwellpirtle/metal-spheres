@@ -62,7 +62,7 @@ kernel void ThreadgroupParticleKernel(constant uint &maximumValidThreadIndex    
 {
     // If we have no particles to compute with, do nothing (not computationally slow as coherent execution will occur
     // since the value resides in the `constant` address space)
-    if (maximumThreadIndex == 0) return;
+    if (maximumThreadIndex == 0 || !(simulateGravity || simulateElectrostatics)) return;
         
     // The index in the thread dispatch
     const uint gridIndex { static_cast<ushort>(threadPos.x + threadsPerGrid.x * threadPos.y) };
@@ -72,6 +72,9 @@ kernel void ThreadgroupParticleKernel(constant uint &maximumValidThreadIndex    
     const uint threadsInThreadgroup { static_cast<ushort>(threadsPerThreadgroup.x * threadsPerThreadgroup.y) };
     
     // Represents the current index in the threadgroup seen by this thread as it walks through the memory
+    thread uint i = 0;
+    
+    // Represents the current threadgroup index for the threadgroup in the particle data array
     thread uint j = 0;
     
     // Represents the particle that is going to be updated by this thread
@@ -97,7 +100,7 @@ kernel void ThreadgroupParticleKernel(constant uint &maximumValidThreadIndex    
     // `particleCount - 1`, we STILL ITERATE AGAIN BUT DON'T COMPUTE ANYTHING. The reason we do this is to ensure
     // that every thread reaches the `threadgroup_barrier(metal::mem_flags::mem_threadgroup)` call below. Otherwise the
     // GPU will hang and the dispatch semaphore will block the main thread, causing a deadlock
-    for (uint threadIndex = threadgroupIndex; threadIndex <= maximumThreadIndex; threadIndex += threadsInThreadgroup, j = 0) {
+    for (uint threadIndex = threadgroupIndex; threadIndex <= maximumThreadIndex; threadIndex += threadsInThreadgroup, i = 0, j++) {
         
         // Should we do anything in this loop other than reach the barrier?
         // The flag is true if the `threadIndex` exceeds the `maximumValidIndex`. Note that
@@ -121,12 +124,18 @@ kernel void ThreadgroupParticleKernel(constant uint &maximumValidThreadIndex    
         threadgroup_barrier(metal::mem_flags::mem_threadgroup);
         
         if (writeToThreadgroupMemory) {
+            
+            // If this is the iteration where only some of the threads in the threadgroup
+            // are executing, we don't want to overshoot and read from threadgroup memory
+            // that has not been overwritten (because it can't!)
+            thread uint maxThreadgroupMemoryIndex = min(threadsInThreadgroup, maximumValidThreadIndex - j * threadsInThreadgroup);
+            
             // Move through the shared threadgroup memory and read from it
-            while ((simulateGravity) && j < threadsInThreadgroup) {
+            while ((simulateGravity) && i < maxThreadgroupMemoryIndex) {
                 
                 // To take advantage of instruction-level parallelism (ILP), we write
                 // the statement 8 times, as the number of threads in any threadgroup is always a multiple of 8
-                SIMD_ILP_STATEMENT(acceleration += PhysicsCompute::gravitationalFieldStrengthAt(particlePos - sharedParticleData[j].position, sharedParticleData[j]); j++);
+                SIMD_ILP_STATEMENT(acceleration += PhysicsCompute::gravitationalFieldStrengthAt(particlePos - sharedParticleData[i].position, sharedParticleData[i]); i++);
             }
         }
         

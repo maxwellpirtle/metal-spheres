@@ -29,6 +29,8 @@ class MSBuffer<EncodedType> : MSMemory<EncodedType> {
     // MARK: - Initializers -
 
     override init(device: MTLDevice, options: MTLResourceOptions, copies: Int, length: Int = MemoryLayout<EncodedType>.stride) {
+        guard !options.contains([.storageModePrivate]) else { fatalError("Cannot initialize an MSBuffer whose underlying memory can only be accessed by the GPU") }
+        
         self.allocator = MSBufferRingAllocator(device: device, buffersInFlight: copies, resourceOptions: options, length: length, encodedType: EncodedType.self)
         super.init(device: device, options: options, copies: copies, length: length)
     }
