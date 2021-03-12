@@ -54,9 +54,6 @@ class MSRendererCore: NSObject, MTKViewDelegate {
     
     // MARK: - Render States -
     
-    /// The pipeline state of the axis render pass
-    private var axisRenderPipelineState: MTLRenderPipelineState!
-    
     /// The render pass descriptor describing the main rendering pass
     private var mainRenderPassDescriptor: MTLRenderPassDescriptor!
 
@@ -65,7 +62,12 @@ class MSRendererCore: NSObject, MTKViewDelegate {
     
     /// The vertex descriptor describing how vertex data is
     /// layed out in memory for the main render pass
-    private(set) var modelInputVertexDescriptor: MTLVertexDescriptor!
+    private lazy var modelInputVertexDescriptor: MTLVertexDescriptor = {
+        .init {
+            MTLVertexAttributeDescriptor(attributeIndex: 0, format: .float3, bufferIndex: 0, offset: 0)
+            MTLVertexAttributeDescriptor(attributeIndex: 1, format: .float3, bufferIndex: 0, offset: MTLVertexFormat.float3.stride)
+        }
+    }()
     
     /// Returns an `MDLVertexDescriptor` based on the vertex descriptor used to render the scene
     private(set) lazy var assetsMDLVertexDescriptor: MDLVertexDescriptor = {
@@ -84,6 +86,9 @@ class MSRendererCore: NSObject, MTKViewDelegate {
     
     /// Writes data into particles
     private(set) var particleRenderer: MSParticleRenderer!
+    
+    /// Renders the coordinate frame axis at the center of the scene
+    private(set) var axisRenderer: MSAxisRenderer!
     
     // MARK: - Initializers -
     
@@ -109,21 +114,26 @@ class MSRendererCore: NSObject, MTKViewDelegate {
         setRenderPassDescriptors()
         
         do {
-            try setRenderPipelineStates(shaderCache: shaderCache)
+            // Create the other renderers
+            
+            //-- Particle Renderer --\\
+            particleRenderer = try MSParticleRenderer(computeDevice: device, view: view, framesInFlight: framesInFlight, library: shaderCache)
+            
+            //-- Axis Renderer --\\
+            axisRenderer = try MSAxisRenderer(renderDevice: device, view: view, library: shaderCache)
         }
         catch let error {
             throw MSRendererError(case: .MTLRenderPipeline, error: error)
         }
-
-        // Create the other renderers
-        
-        //-- Particle Renderer --\\
-        particleRenderer = try MSParticleRenderer(computeDevice: device, view: view, framesInFlight: framesInFlight, library: shaderCache)
         
         do {
             // Create shared resources
             uniformsCPU = MSUniforms()
-            uniformsGPU = MSBuffer<MSUniforms>(device: device, options: .storageModeShared, copies: MSConstants.framesInFlight)
+            uniformsGPU = MSBuffer<MSUniforms>(device: device,
+                                               options: .storageModeShared,
+                                               addressSpace: .constant,
+                                               copies: MSConstants.framesInFlight,
+                                               shareMemory: true)
         }
         
         // Set the delegate of the view to the renderer
@@ -134,36 +144,6 @@ class MSRendererCore: NSObject, MTKViewDelegate {
     
     private func setRenderPassDescriptors() {
         mainRenderPassDescriptor = view.currentRenderPassDescriptor
-    }
-
-    private func setRenderPipelineStates(shaderCache: MTLLibrary?) throws {
-        guard let library = shaderCache,
-              let vertexAxis = library.makeFunction(name: "axis_vertex"),
-              let fragmentAxis = library.makeFunction(name: "axis_fragment")
-        else { fatalError("Expected every function in source project") }
-        
-        // MARK: Main Render Pass
-
-        let renderPipelineDescriptor = MTLRenderPipelineDescriptor()
-
-        // Initialize the vertex descriptor for the main pass
-        let vertexDescriptor = MTLVertexDescriptor {
-            MTLVertexAttributeDescriptor(attributeIndex: 0, format: .float3, bufferIndex: 0, offset: 0)
-            MTLVertexAttributeDescriptor(attributeIndex: 1, format: .float3, bufferIndex: 0, offset: MTLVertexFormat.float3.stride)
-        }
-        renderPipelineDescriptor.vertexDescriptor = vertexDescriptor
-        modelInputVertexDescriptor = vertexDescriptor
-        
-        // Axis Pass
-        renderPipelineDescriptor.label = "Axis pipeline"
-        renderPipelineDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
-        renderPipelineDescriptor.depthAttachmentPixelFormat = .depth32Float
-        renderPipelineDescriptor.vertexFunction = vertexAxis
-        renderPipelineDescriptor.fragmentFunction = fragmentAxis
-        
-        axisRenderPipelineState = try device.makeRenderPipelineState(descriptor: renderPipelineDescriptor)
-        
-        // MARK: Shadow Render Pass
     }
     
     private func setDepthStencilStates() {
@@ -225,7 +205,7 @@ class MSRendererCore: NSObject, MTKViewDelegate {
             scene.willRender(dt)
             
             // Render particles
-            particleRenderer.drawParticleSimulation(commandBuffer: commandBuffer, encodingInto: renderEncoder, uniforms: uniformsGPU)
+            particleRenderer.encodeRenderCommands(into: renderEncoder, commandBuffer: commandBuffer, uniforms: uniformsGPU)
         }
         
         drawAxis:
@@ -233,24 +213,7 @@ class MSRendererCore: NSObject, MTKViewDelegate {
             //---- Coordinate Axes Render ----\\
             guard state.drawsCoordinateSystem else { break drawAxis }
             
-            renderEncoder.setRenderPipelineState(axisRenderPipelineState)
-            
-            var axisUniforms = MSUniforms(scene: scene)
-            renderEncoder.setVertexBytes(&axisUniforms, length: MemoryLayout<MSUniforms>.stride, index: 1)
-            
-            do {
-                let vertexBytes = [MSConstants.xyplane, MSConstants.xzplane, MSConstants.yzplane]
-                for var axisColorIndex: ushort in 0..<3 {
-                    
-                    // Get a copy of the data we will again copy
-                    var bytes = vertexBytes[Int(axisColorIndex)]
-                    
-                    renderEncoder.setVertexBytes(&bytes, length: bytes.count * MemoryLayout<simd_float3>.stride, index: 0)
-                    renderEncoder.setFragmentBytes(&axisColorIndex, length: MemoryLayout<ushort>.stride, index: 1)
-                    renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 12)
-                }
-            }
-            
+            axisRenderer.encodeRenderCommands(into: renderEncoder, commandBuffer: commandBuffer, uniforms: uniformsGPU)
             //---- End ----\\
         }
         

@@ -12,6 +12,7 @@
 
 // Metal Files
 #import <metal_stdlib>
+#import <metal_matrix>
 #import "PhysicsCompute.metal"
 #import "Uniforms.metal"
 #import "MetalExtension.metal"
@@ -65,11 +66,11 @@ kernel void ThreadgroupParticleKernel(constant uint &maximumValidThreadIndex    
     if (maximumThreadIndex == 0 || !(simulateGravity || simulateElectrostatics)) return;
         
     // The index in the thread dispatch
-    const uint gridIndex { static_cast<ushort>(threadPos.x + threadsPerGrid.x * threadPos.y) };
+    const uint gridIndex { static_cast<uint>(threadPos.x + threadsPerGrid.x * threadPos.y) };
     
     // Index into the shared threadgroup memory for this particular thread
-    const uint threadgroupIndex { static_cast<ushort>(threadgroupPos.x + threadsPerThreadgroup.x * threadgroupPos.y) };
-    const uint threadsInThreadgroup { static_cast<ushort>(threadsPerThreadgroup.x * threadsPerThreadgroup.y) };
+    const uint threadgroupIndex { static_cast<uint>(threadgroupPos.x + threadsPerThreadgroup.x * threadgroupPos.y) };
+    const uint threadsInThreadgroup { static_cast<uint>(threadsPerThreadgroup.x * threadsPerThreadgroup.y) };
     
     // Represents the current index in the threadgroup seen by this thread as it walks through the memory
     thread uint i = 0;

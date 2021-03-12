@@ -26,12 +26,16 @@ class MSBuffer<EncodedType> : MSMemory<EncodedType> {
     /// value encoded by this buffer
     var dynamicBuffer: MTLBuffer! { allocator.currentBuffer }
     
+    /// The offset from the start of the buffer within the current dynamic buffer that
+    /// the data encoded in this buffer is located
+    var offset: Int { allocator.currentOffset }
+    
     // MARK: - Initializers -
 
-    override init(device: MTLDevice, options: MTLResourceOptions, copies: Int, length: Int = MemoryLayout<EncodedType>.stride) {
+    init(device: MTLDevice, options: MTLResourceOptions, addressSpace: MTLAddressSpace, copies: Int, length: Int = MemoryLayout<EncodedType>.stride, shareMemory: Bool = false) {
         guard !options.contains([.storageModePrivate]) else { fatalError("Cannot initialize an MSBuffer whose underlying memory can only be accessed by the GPU") }
         
-        self.allocator = MSBufferRingAllocator(device: device, buffersInFlight: copies, resourceOptions: options, length: length, encodedType: EncodedType.self)
+        self.allocator = MSBufferRingAllocator(device: device, buffersInFlight: copies, resourceOptions: options, addressSpace: addressSpace, length: length, encodedType: EncodedType.self, shareMemory: shareMemory)
         super.init(device: device, options: options, copies: copies, length: length)
     }
     

@@ -40,7 +40,6 @@ struct MSGeometryClass {
 }
 
 extension MSGeometryClass {
-    
     /// Whether or not two geometry classes are the same
-    func isEqual(to gc: MSGeometryClass) -> Bool { gc.name == name }
+    func isEqual(to gc: MSGeometryClass) -> Bool { gc.filepath == filepath }
 }

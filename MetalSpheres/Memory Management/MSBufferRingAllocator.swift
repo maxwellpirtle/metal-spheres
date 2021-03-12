@@ -17,17 +17,33 @@ class MSBufferRingAllocator {
     /// The number of buffers in the store
     var bufferCount: Int { buffers.count }
     
-    /// The set of buffers
+    /// The number of instances of data fit within each buffer in the store
+    private(set) var instanceCount: Int = 1
+    
+    /// The size of a single buffer in the ring. Each buffer is created such that
+    /// they have the same size as the other buffers
+    var lengthOfBuffersManaged: Int { buffers.first?.length ?? 0 }
+    
+    /// The total allocation length of all buffers in the set of buffers
+    var totalMemoryAllocated: Int { buffers.reduce(0) { $0 + $1.length } }
+    
+    /// The set of buffers in the buffer ring
     private var buffers: [MTLBuffer] = []
     
     // MARK: - Current Buffers -
     
+    /// Whether or not the buffers share memory in a single MTLBuffer (offset at different points in the buffer
+    private(set) var contiguouslyStoresBuffers: Bool = false
+    
     /// Returns the current buffer in use
     var currentBuffer: MTLBuffer { self[index: currentIndex] }
     
-    /// The current index in the store
-    private var currentIndex: Int = 0
+    /// The current offset in the offset ring
+    private(set) var currentOffset: Int = 0
     
+    /// The current index in the buffer ring
+    private var currentIndex: Int = 0
+
     /// Returns a buffer at the given subscript
     private subscript(index i: Int) -> MTLBuffer { buffers[i] }
     
@@ -40,6 +56,15 @@ class MSBufferRingAllocator {
     
     /// Updates the current buffer that is being written into
     func cycleToNextBuffer() {
+        
+        // Move to the next buffer in the ring in the MTLBuffer
+        // shared between the three
+        if contiguouslyStoresBuffers {
+            currentOffset += currentBuffer.length / instanceCount
+            currentOffset %= totalMemoryAllocated
+        }
+        
+        // Move to the next buffer in the ring
         currentIndex += 1
         currentIndex %= bufferCount
     }
@@ -62,13 +87,20 @@ extension MSBufferRingAllocator {
     /// A convenience initializer that allocates `MTLBuffer` objects
     /// with the provided device for the given MSBuffer instance. The length of the buffer can vary as well,
     /// but is defaulted to the stride of the type provided
-    convenience init<T>(device: MTLDevice, buffersInFlight: Int, resourceOptions: MTLResourceOptions, length: Int = MemoryLayout<T>.stride, encodedType: T.Type = T.self) {
+    convenience init<T>(device: MTLDevice, buffersInFlight: Int, resourceOptions: MTLResourceOptions, addressSpace: MTLAddressSpace, length: Int = MemoryLayout<T>.stride, encodedType: T.Type = T.self, shareMemory: Bool = false)
+    {
+        let bufferLength = shareMemory ? buffersInFlight * length : length
+        let buffersToCreate = shareMemory ? 1 : buffersInFlight
+        
         // Note that this call makes use of the `@_functionBuilder` attribute so that
         // the first closure is actually binded as a parameter into the `FallibleArrayAllocator`
         // initializer
         self.init {
-            { (i: Int) in device.makeBuffer(length: length, options: resourceOptions) }
-            (0..<buffersInFlight).map { $0 }
+            { (i: Int) in device.makeBuffer(length: bufferLength, options: resourceOptions, alingedTo: addressSpace) }
+            (0..<buffersToCreate).map { $0 }
         }
+        
+        self.contiguouslyStoresBuffers = shareMemory
+        self.instanceCount = shareMemory ? buffersInFlight : 1
     }
 }

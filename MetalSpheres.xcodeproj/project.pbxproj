@@ -33,9 +33,11 @@
 		14358C3F2501D60C0035C602 /* MSCameraNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14358C3E2501D60C0035C602 /* MSCameraNode.swift */; };
 		14358C412501D70D0035C602 /* MSSceneController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14358C402501D70D0035C602 /* MSSceneController.swift */; };
 		14358C4325025F630035C602 /* MSSpriteNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14358C4225025F630035C602 /* MSSpriteNode.swift */; };
+		1439EC5625F46943005AD2A5 /* GKSphericalVectorDistribution.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1439EC5525F46943005AD2A5 /* GKSphericalVectorDistribution.swift */; };
 		1442DECF255B76ED0009980E /* PhysicsCompute.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1442DECE255B76ED0009980E /* PhysicsCompute.metal */; };
 		14439651257848EC0019DA49 /* MTLBufferExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14439650257848EC0019DA49 /* MTLBufferExtension.swift */; };
 		14442B1E25D87352004D6E77 /* MTLSizeExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14442B1D25D87352004D6E77 /* MTLSizeExtension.swift */; };
+		144D72E125FA62A2005F1E4D /* MSRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 144D72E025FA62A2005F1E4D /* MSRenderer.swift */; };
 		144F217F25EC448100A63905 /* simdExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 144F217E25EC448100A63905 /* simdExtensions.swift */; };
 		14500C8325728B370097F615 /* MSUniverseDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14500C8225728B370097F615 /* MSUniverseDelegate.swift */; };
 		145021992573376700FB2460 /* MSParticleNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145021982573376700FB2460 /* MSParticleNode.swift */; };
@@ -59,6 +61,8 @@
 		146A6C932558D07E005C1212 /* Bump_2K.png in Resources */ = {isa = PBXBuildFile; fileRef = 146A6C912558D07E005C1212 /* Bump_2K.png */; };
 		1491821D25000178009CEE8B /* MSNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1491821C25000178009CEE8B /* MSNode.swift */; };
 		1492893F256C516800AB762F /* MSConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1492893E256C516800AB762F /* MSConstants.swift */; };
+		14947F1325FB2498003AE867 /* MTLDeviceExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14947F1225FB2498003AE867 /* MTLDeviceExtension.swift */; };
+		14947F1925FB24FD003AE867 /* MTLAddressSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14947F1825FB24FD003AE867 /* MTLAddressSpace.swift */; };
 		14A9C8192502E751004B01E8 /* Uniforms.metal in Sources */ = {isa = PBXBuildFile; fileRef = 14A9C8182502E751004B01E8 /* Uniforms.metal */; };
 		14A9C81C2502E937004B01E8 /* SimulationScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A9C81B2502E937004B01E8 /* SimulationScene.swift */; };
 		14A9C81E2502F1AC004B01E8 /* SwiftExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A9C81D2502F1AC004B01E8 /* SwiftExtensions.swift */; };
@@ -74,6 +78,7 @@
 		14DFE73D2576DC9E00B2A169 /* simd_frustrum.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DFE73C2576DC9E00B2A169 /* simd_frustrum.swift */; };
 		14E2BE5F2575E3F300C8DD65 /* ParticlePhysics.metal in Sources */ = {isa = PBXBuildFile; fileRef = 14E2BE5E2575E3F300C8DD65 /* ParticlePhysics.metal */; };
 		14E9F24B250D7E6700FD4631 /* MSFixedCameraNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9F24A250D7E6700FD4631 /* MSFixedCameraNode.swift */; };
+		14F68B2F25FA60BC0061404B /* MSAxisRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F68B2E25FA60BC0061404B /* MSAxisRenderer.swift */; };
 		14FA4213258AA6F500194D87 /* MSLakitu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FA4212258AA6F500194D87 /* MSLakitu.swift */; };
 /* End PBXBuildFile section */
 
@@ -142,9 +147,11 @@
 		14358C3E2501D60C0035C602 /* MSCameraNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSCameraNode.swift; sourceTree = "<group>"; };
 		14358C402501D70D0035C602 /* MSSceneController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSSceneController.swift; sourceTree = "<group>"; };
 		14358C4225025F630035C602 /* MSSpriteNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSSpriteNode.swift; sourceTree = "<group>"; };
+		1439EC5525F46943005AD2A5 /* GKSphericalVectorDistribution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GKSphericalVectorDistribution.swift; sourceTree = "<group>"; };
 		1442DECE255B76ED0009980E /* PhysicsCompute.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = PhysicsCompute.metal; sourceTree = "<group>"; };
 		14439650257848EC0019DA49 /* MTLBufferExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTLBufferExtension.swift; sourceTree = "<group>"; };
 		14442B1D25D87352004D6E77 /* MTLSizeExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTLSizeExtension.swift; sourceTree = "<group>"; };
+		144D72E025FA62A2005F1E4D /* MSRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSRenderer.swift; sourceTree = "<group>"; };
 		144F217E25EC448100A63905 /* simdExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = simdExtensions.swift; sourceTree = "<group>"; };
 		14500C8225728B370097F615 /* MSUniverseDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSUniverseDelegate.swift; sourceTree = "<group>"; };
 		145021982573376700FB2460 /* MSParticleNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MSParticleNode.swift; sourceTree = "<group>"; };
@@ -177,6 +184,8 @@
 		1478C83724F34EC800452E03 /* MSUniforms.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSUniforms.h; sourceTree = "<group>"; };
 		1491821C25000178009CEE8B /* MSNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSNode.swift; sourceTree = "<group>"; };
 		1492893E256C516800AB762F /* MSConstants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MSConstants.swift; sourceTree = "<group>"; };
+		14947F1225FB2498003AE867 /* MTLDeviceExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTLDeviceExtension.swift; sourceTree = "<group>"; };
+		14947F1825FB24FD003AE867 /* MTLAddressSpace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTLAddressSpace.swift; sourceTree = "<group>"; };
 		14A9C8182502E751004B01E8 /* Uniforms.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Uniforms.metal; sourceTree = "<group>"; };
 		14A9C81B2502E937004B01E8 /* SimulationScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationScene.swift; sourceTree = "<group>"; };
 		14A9C81D2502F1AC004B01E8 /* SwiftExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftExtensions.swift; sourceTree = "<group>"; };
@@ -192,6 +201,7 @@
 		14DFE73C2576DC9E00B2A169 /* simd_frustrum.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = simd_frustrum.swift; sourceTree = "<group>"; };
 		14E2BE5E2575E3F300C8DD65 /* ParticlePhysics.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ParticlePhysics.metal; sourceTree = "<group>"; };
 		14E9F24A250D7E6700FD4631 /* MSFixedCameraNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSFixedCameraNode.swift; sourceTree = "<group>"; };
+		14F68B2E25FA60BC0061404B /* MSAxisRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSAxisRenderer.swift; sourceTree = "<group>"; };
 		14FA4212258AA6F500194D87 /* MSLakitu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSLakitu.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -228,7 +238,9 @@
 			children = (
 				1408223A2593FF1A00DFD511 /* GKCylindricalVectorDistribution.swift */,
 				1426B94D25EB1C1B008FAE0E /* GKFixedRandomSource.swift */,
+				1439EC5525F46943005AD2A5 /* GKSphericalVectorDistribution.swift */,
 				1492893E256C516800AB762F /* MSConstants.swift */,
+				144D72E025FA62A2005F1E4D /* MSRenderer.swift */,
 				14DFE73C2576DC9E00B2A169 /* simd_frustrum.swift */,
 			);
 			path = "Render Helpers";
@@ -274,7 +286,7 @@
 			isa = PBXGroup;
 			children = (
 				146023E425586FA3006BA9F8 /* Assets */,
-				14C8EEBE24F5C30E00BC5D4E /* Custom Types */,
+				14C8EEBE24F5C30E00BC5D4E /* Custom Extensions */,
 				1454258A24F2C542005926FB /* Entitlements */,
 				1454258924F2C4D5005926FB /* macOS */,
 				1454259F24F345D5005926FB /* Memory Management */,
@@ -404,6 +416,7 @@
 		1478C83124F34D8800452E03 /* Rendering */ = {
 			isa = PBXGroup;
 			children = (
+				14F68B3325FA60CB0061404B /* Axis Renderer */,
 				145C5351255A014F003F582C /* Main Renderer */,
 				1491821E2500017B009CEE8B /* Nodes */,
 				145C5352255A0162003F582C /* Particle Renderer */,
@@ -467,19 +480,29 @@
 			path = "Rendering and Physics";
 			sourceTree = "<group>";
 		};
-		14C8EEBE24F5C30E00BC5D4E /* Custom Types */ = {
+		14C8EEBE24F5C30E00BC5D4E /* Custom Extensions */ = {
 			isa = PBXGroup;
 			children = (
 				14C8EEBF24F5C32F00BC5D4E /* FallibleArrayAllocator.swift */,
 				14358C2B250048860035C602 /* MSTransformExtension.swift */,
+				14947F1825FB24FD003AE867 /* MTLAddressSpace.swift */,
 				14439650257848EC0019DA49 /* MTLBufferExtension.swift */,
 				1417D6A925E340AE005ECE7F /* MTLComputeCommandEncoderExtension.swift */,
+				14947F1225FB2498003AE867 /* MTLDeviceExtension.swift */,
 				14442B1D25D87352004D6E77 /* MTLSizeExtension.swift */,
 				1450219D257412C200FB2460 /* MTLTextureExtension.swift */,
-				14A9C81D2502F1AC004B01E8 /* SwiftExtensions.swift */,
 				144F217E25EC448100A63905 /* simdExtensions.swift */,
+				14A9C81D2502F1AC004B01E8 /* SwiftExtensions.swift */,
 			);
-			path = "Custom Types";
+			path = "Custom Extensions";
+			sourceTree = "<group>";
+		};
+		14F68B3325FA60CB0061404B /* Axis Renderer */ = {
+			isa = PBXGroup;
+			children = (
+				14F68B2E25FA60BC0061404B /* MSAxisRenderer.swift */,
+			);
+			path = "Axis Renderer";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -622,6 +645,7 @@
 				1492893F256C516800AB762F /* MSConstants.swift in Sources */,
 				14AD9A8B25DA22A900C3E72F /* MSRunLoopResponder.swift in Sources */,
 				14500C8325728B370097F615 /* MSUniverseDelegate.swift in Sources */,
+				14F68B2F25FA60BC0061404B /* MSAxisRenderer.swift in Sources */,
 				142B0B0524FDEAFF0065FBF7 /* MTLVertexAttributeDescriptor.swift in Sources */,
 				142B0B0824FDED450065FBF7 /* ConvenienceExtensions.swift in Sources */,
 				14442B1E25D87352004D6E77 /* MTLSizeExtension.swift in Sources */,
@@ -644,6 +668,8 @@
 				145C5360255A051B003F582C /* MSParticleRendererState.swift in Sources */,
 				140822542595745000DFD511 /* MSRenderCoreState.swift in Sources */,
 				14A9C8192502E751004B01E8 /* Uniforms.metal in Sources */,
+				14947F1325FB2498003AE867 /* MTLDeviceExtension.swift in Sources */,
+				144D72E125FA62A2005F1E4D /* MSRenderer.swift in Sources */,
 				14C8EEC424F5E09700BC5D4E /* MSSceneView.swift in Sources */,
 				14FA4213258AA6F500194D87 /* MSLakitu.swift in Sources */,
 				145425A124F345E9005926FB /* MSBufferRingAllocator.swift in Sources */,
@@ -655,6 +681,8 @@
 				1491821D25000178009CEE8B /* MSNode.swift in Sources */,
 				1428634825E205BD003DE037 /* MSBufferPairAllocator.swift in Sources */,
 				14C80B5A2502F5B9003399A4 /* MDLVertexAttributeDescriptor.swift in Sources */,
+				1439EC5625F46943005AD2A5 /* GKSphericalVectorDistribution.swift in Sources */,
+				14947F1925FB24FD003AE867 /* MTLAddressSpace.swift in Sources */,
 				14A9C81C2502E937004B01E8 /* SimulationScene.swift in Sources */,
 				1428634525E20489003DE037 /* MSMemory.swift in Sources */,
 				14E9F24B250D7E6700FD4631 /* MSFixedCameraNode.swift in Sources */,

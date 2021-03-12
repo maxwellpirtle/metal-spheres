@@ -9,7 +9,7 @@
 import Metal
 import Relativity
 
-final class MSParticleRenderer: NSObject, MSUniverseDelegate {
+final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
 
     // MARK: - Simulation State -
 
@@ -275,7 +275,13 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
     
     /// Called just before the command buffer is committed on the main thread in `MSRendererCore`
     func willCommitCommandBuffer(_ commandBuffer: MTLCommandBuffer) {
-        particleDataPool.exchangeReadWriteAssigment()
+        
+        // We only flip the read-write assignment when the simulation is not paused.
+        // If we were to do so when the simulation were paused, since the two particle buffers
+        // hold different particle data, the models/point particles would move eradically between each
+        // point as the write-assgined buffer is the one that we pass to the rendering stages
+        if !isPaused { particleDataPool.exchangeReadWriteAssigment() }
+
     }
 
     // MARK: - Simulation -
@@ -420,9 +426,9 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
         }
     }
 
-    func drawParticleSimulation(commandBuffer: MTLCommandBuffer,
-                                encodingInto renderEncoder: MTLRenderCommandEncoder,
-                                uniforms: MSBuffer<MSUniforms>)
+    func encodeRenderCommands(into renderEncoder: MTLRenderCommandEncoder,
+                              commandBuffer: MTLCommandBuffer,
+                              uniforms: MSBuffer<MSUniforms>)
     {
         // If there is nothing to render, end early
         guard !skipRenderPass, let renderPipelineState = renderPipelineStateForCurrentSimulation() else { return }
@@ -432,7 +438,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
         renderEncoder.setRenderPipelineState(renderPipelineState)
         
         if state.pointParticles { // Particles
-            renderEncoder.setVertexBuffer(uniforms.dynamicBuffer, offset: 0, index: 1)
+            renderEncoder.setVertexBuffer(uniforms.dynamicBuffer, offset: uniforms.offset, index: 1)
             renderEncoder.setVertexBuffer(particleDataPool.refreshedBuffer, offset: 0, index: 2)
             renderEncoder.drawPrimitives(type: .point,
                                          vertexStart: 0,
@@ -446,7 +452,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate {
             for mesh in sharedModel.meshes {
                 for vb in mesh.mtkMesh.vertexBuffers {
                     renderEncoder.setVertexBuffer(vb.buffer, offset: 0, index: 0)
-                    renderEncoder.setVertexBuffer(uniforms.dynamicBuffer, offset: 0, index: 1)
+                    renderEncoder.setVertexBuffer(uniforms.dynamicBuffer, offset: uniforms.offset, index: 1)
                     renderEncoder.setVertexBuffer(particleDataPool.refreshedBuffer, offset: 0, index: 2)
 
                     for submesh in mesh.submeshes {

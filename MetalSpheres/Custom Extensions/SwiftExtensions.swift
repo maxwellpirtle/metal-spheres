@@ -19,6 +19,11 @@ extension String {
 
 extension Int {
     init(CBooleanConvert bool: Bool) { self = bool ? 1 : 0 }
+    
+    /// Returns the largest multiple of this number that is greater than or equal to the given number
+    func smallestMultiple(greaterThanOrEqualTo value: Int) -> Int {
+        value % self == 0 ? value : self * (value / self + 1)
+    }
 }
 
 extension UInt {
