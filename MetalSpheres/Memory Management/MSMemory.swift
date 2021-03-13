@@ -45,12 +45,12 @@ class MSMemory<EncodedType> {
             precondition(!options.contains(.storageModePrivate), "Only `.storageModeShared` and `.storageModeManaged` allowed")
         }
         
-        self.length = MemoryLayout<EncodedType>.stride
+        self.length = length
         self.options = options
     }
     
     // Each subclass defines what it means to read and write from it at any given point
-    func unsafelyWrite(_ value: inout EncodedType, capacity: Int = 1, type: EncodedType.Type = EncodedType.self) {}
+    func unsafelyWrite(_ value: inout EncodedType, type: EncodedType.Type = EncodedType.self) {}
     func unsafelyWrite<T>(_ value: inout [T], type: T.Type = T.self) {}
     func unsafelyRead<T>(capacity: Int, reading block: (UnsafePointer<T>) -> Void) {}
     func didModifyRange(_ range: Range<Int>) {}

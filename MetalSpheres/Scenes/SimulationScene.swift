@@ -18,7 +18,7 @@ class SimulationScene: MSParticleScene {
         // We have 64 * 500 = 32_000 particles in our simulation. Note this is
         // a multiple of the wavefront size on macOS
         let loader = controller.modelLoader
-        let particlesInSimulation = 64 * 520
+        let particlesInSimulation = 64 * 500
         let cylinderRadius: Float = 10.0
         let cylinderHeight: Float = 10.0
         

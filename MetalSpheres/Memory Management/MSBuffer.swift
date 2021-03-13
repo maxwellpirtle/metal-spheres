@@ -45,9 +45,9 @@ class MSBuffer<EncodedType> : MSMemory<EncodedType> {
     func cycleToNextAvailableBuffer() { allocator.cycleToNextBuffer() }
     
     /// Encodes the given value into the current dynamic buffer
-    override func unsafelyWrite(_ value: inout EncodedType, capacity: Int = 1, type: EncodedType.Type = EncodedType.self) {
+    override func unsafelyWrite(_ value: inout EncodedType, type: EncodedType.Type = EncodedType.self) {
         // Get the current buffer and bind its memory unsafely
-        dynamicBuffer.unsafelyWrite(&value, capacity: capacity, type: type)
+        dynamicBuffer.unsafelyWrite(&value, type: type)
     }
     
     /// Unsafely write array data into the current dynamic buffer

@@ -50,4 +50,27 @@ class MSModel {
             }
         }
     }
+    
+    /// The number of indexed draw calls that are made to render this model
+    var drawCallsToRender: Int { meshes.reduce(0) { $0 + $1.submeshes.count * $1.modelIOBufferBacking.count } }
+    
+    /// Traverses the meshes described by this model, their submeshes, and their vertex Metal
+    /// buffer backing according to the given closures
+    func traverseMeshTree(meshBufferHandler: (MTKMeshBuffer) -> Void, submeshHandler: (MSModelMesh.Partition) -> Void) {
+        
+        // Traverse all of the meshes
+        for mesh in meshes {
+            
+            // For each mesh, traverse its vertex data
+            for vb in mesh.modelIOBufferBacking {
+                
+                // Process the vertex data in some way
+                meshBufferHandler(vb)
+                
+                // With the vertex data processed, do something with the
+                // submeshes referencing the data
+                for submesh in mesh.submeshes { submeshHandler(submesh) }
+            }
+        }
+    }
 }

@@ -12,9 +12,47 @@ import Relativity
 final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
 
     // MARK: - Simulation State -
+    
+    // Describes how particle data should update per-frame. Describes what forces are at play in the
+    // physics pass update as well as how the particle pipeline is updated and run
+    private struct State {
+        /// Whether or not the simulation has been paused
+        var isPaused = false
+        
+        /// Whether or not a physics simulation is occurring
+        var isSimulatingPhysics: Bool { !isPaused && (isGravityEnabled || isElectromagnetismEnabled)  }
+        
+        /// Whether or not gravity is active
+        var isGravityEnabled = true
+        
+        /// Whether or not electrostatic forces are active
+        var isElectromagnetismEnabled = false
+        
+        /// Whether or not to draw each particle as a point as opposed to a sphere
+        var pointParticles = true
+        
+        /// Whether or not the particle renderer is drawing via
+        /// indirect command buffers encoded on the GPU
+        var useIndirectCommandBuffersForRendering = true
+        
+        #if os(iOS) || os(tvOS)
+        /// Whether or not the particle renderer is encoding compute commands via
+        /// indirect command buffers encoded on the GPU. This feature is only available on iOS and tvOS
+        var useIndirectCommandBuffersForCompute = false
+        #endif
+    }
+    
+    /// Describes temporary flags to communicate across control flow structures
+    private struct EphemeralState {
+        /// Whether or not the ICB has had its render commands encoded into it on the CPU already
+        var icbHasRenderCommandsEncoded: Bool = false
+    }
 
     /// Determines how particle data is updated in the kernel
-    private var state: MSParticleRendererState = .default
+    private var state: State = .init()
+    
+    /// Determines ephemeral state control flow within the particle rendering pipeline
+    private var ephemeralState: EphemeralState = .init()
 
     /// The collection of particles this renderer is responsible for
     /// along with their indicies into the particle buffer. This property
@@ -44,7 +82,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
 
     // MARK: - Metal Internals -
 
-    /// The compute pipeline states responsbile for running
+    /// The compute pipeline states responsible for running
     /// the particle simulation with more precision
     /// (All-pairs simulation)
     private let preciseComputePipelineStates: [MTLComputePipelineState]
@@ -114,6 +152,15 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
 
     /// Listens to a notification that a shared buffer has been written to
     private let sharedEventListener: MTLSharedEventListener
+    
+    /// An indirect command buffer that has encoded in it the render (and possibly compute) commands
+    private var indirectCommandBuffer: MTLIndirectCommandBuffer
+    
+    /// A buffer that stores uniform scene data read in by the GPU with an indirect command buffer
+    private var indirectCommandBufferUniformDataBuffer: MTLBuffer
+    
+    /// A buffer that stores the current updated particle data to be used in rendering
+    private var indirectCommandBufferParticleDataBuffer: MTLBuffer
 
     /// Clears the particle cache by adding and removing the particles
     /// waiting in the cache and moving them into the set of particles in the simulation
@@ -171,6 +218,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
             let rpsd = MTLRenderPipelineDescriptor()
             rpsd.colorAttachments[0].pixelFormat = view.colorPixelFormat
             rpsd.depthAttachmentPixelFormat = view.depthStencilPixelFormat
+            rpsd.supportIndirectCommandBuffers = true
             rpsd.fragmentFunction = library.makeFunction(name: "ParticleFragmentStage")
 
             let vertexDescriptor = MTLVertexDescriptor {
@@ -228,13 +276,32 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
             // Debug names
             particleDataPool.label               = "Particle Simulation Data"
             particleSyncSharedEvent.label        = "CPU Managed Buffer Safe Access Shared Event"
+            
+            // The indirect command buffer to use in the event it begins to be used
+            icb:
+            do {
+                let indirectCommandBufferDescriptor = MTLIndirectCommandBufferDescriptor()
+                indirectCommandBufferDescriptor.commandTypes = .drawIndexed
+                indirectCommandBufferDescriptor.inheritBuffers = false
+                indirectCommandBufferDescriptor.inheritPipelineState = true
+                indirectCommandBufferDescriptor.maxVertexBufferBindCount = 5
+                indirectCommandBufferDescriptor.maxFragmentBufferBindCount = 5
+                
+                indirectCommandBuffer = device.makeIndirectCommandBuffer(descriptor: indirectCommandBufferDescriptor, maxCommandCount: 1, options: .storageModeManaged)!
+                indirectCommandBuffer.label = "Particle renderer ICB"
+
+                // Create the buffers the ICB references in its pre-encoded render commands
+                indirectCommandBufferUniformDataBuffer = device.makeBuffer(length: 512, options: .storageModePrivate)!
+                indirectCommandBufferParticleDataBuffer = device.makeBuffer(length: particleDataPool.length, options: .storageModePrivate)!
+                indirectCommandBufferUniformDataBuffer.label = "Particle renderer ICB Buffer: Uniforms"
+                indirectCommandBufferParticleDataBuffer.label = "Particle renderer ICB Buffer: Particles"
+            }
         }
 
         // Particle cache
         do {
             // In the worst case scenario, we are adding particle data when have 3 frames
-            // full. Therefore, we add one more just in case since we will wait on the
-            // GPU anyway
+            // full. Therefore, we add one more just in case since we will wait on the GPU anyway
             let channels = framesInFlight + 1
             particleDataCache = MSParticleCache(channels: channels)
         }
@@ -273,6 +340,62 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
         }
     }
     
+    /// Encode drawing commands into the ICB for reuse (when the `useIndirectCommandBuffersForRendering` flag is set to `true`)
+    private func encodeRenderCommandsIntoICB(forModel model: MSModel) {
+        let indirectRenderCommand = indirectCommandBuffer.indirectRenderCommandAt(0)
+
+        // Go through the mesh subdivisions and encode a render command
+        model.traverseMeshTree { mtkMeshBuffer in
+            indirectRenderCommand.setVertexBuffer(mtkMeshBuffer.buffer, offset: mtkMeshBuffer.offset, at: 0)
+            indirectRenderCommand.setVertexBuffer(indirectCommandBufferUniformDataBuffer, offset: 0, at: 1)
+            indirectRenderCommand.setVertexBuffer(indirectCommandBufferParticleDataBuffer, offset: 0, at: 2)
+        } submeshHandler: { submesh in
+            let mtkSubmesh = submesh.mtkSubmesh!
+            indirectRenderCommand.drawIndexedPrimitives(.triangle,
+                                                        indexCount: mtkSubmesh.indexCount,
+                                                        indexType: mtkSubmesh.indexType,
+                                                        indexBuffer: mtkSubmesh.indexBuffer.buffer,
+                                                        indexBufferOffset: mtkSubmesh.indexBuffer.offset,
+                                                        instanceCount: particlesInSimulation,
+                                                        baseVertex: 0,
+                                                        baseInstance: 0)
+        }
+    }
+    
+    /// Prepares the render commands stored in the ICB for execution by querying Metal to
+    /// make the resources resident in memory
+    private func encodeResourceUsageForICBRendering(_ renderEncoder: MTLRenderCommandEncoder, forModel model: MSModel) {
+        model.traverseMeshTree { mtkMeshBuffer in
+            renderEncoder.useResource(mtkMeshBuffer.buffer, usage: .read)
+            renderEncoder.useResource(indirectCommandBufferUniformDataBuffer, usage: .read)
+            renderEncoder.useResource(indirectCommandBufferParticleDataBuffer, usage: .read)
+        } submeshHandler: { submesh in
+            let mtkSubmesh = submesh.mtkSubmesh!
+            renderEncoder.useResource(mtkSubmesh.indexBuffer.buffer, usage: .read)
+        }
+    }
+    
+    
+    /// Sends a message to this renderer that a new render encoding is about to commence
+    /// in the central pipeline state this renderer is connected to
+    func renderingWillBegin(with commandBuffer: MTLCommandBuffer, phase: MSRendererCore.RenderingPhase, uniforms: MSBuffer<MSUniforms>) {
+        if state.useIndirectCommandBuffersForRendering && phase == .gBufferPass {
+            // Blit data into the buffers referenced by the ICB
+            let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
+            blitEncoder.copy(from: particleDataPool.refreshedBuffer,
+                             sourceOffset: 0,
+                             to: indirectCommandBufferParticleDataBuffer,
+                             destinationOffset: 0,
+                             size: particleDataPool.length)
+            blitEncoder.copy(from: uniforms.dynamicBuffer,
+                             sourceOffset: uniforms.offset,
+                             to: indirectCommandBufferUniformDataBuffer,
+                             destinationOffset: 0,
+                             size: uniforms.dynamicBuffer.length)
+            blitEncoder.endEncoding()
+        }
+    }
+    
     /// Called just before the command buffer is committed on the main thread in `MSRendererCore`
     func willCommitCommandBuffer(_ commandBuffer: MTLCommandBuffer) {
         
@@ -281,7 +404,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
         // hold different particle data, the models/point particles would move eradically between each
         // point as the write-assgined buffer is the one that we pass to the rendering stages
         if !isPaused { particleDataPool.exchangeReadWriteAssigment() }
-
+        
     }
 
     // MARK: - Simulation -
@@ -432,6 +555,11 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
     {
         // If there is nothing to render, end early
         guard !skipRenderPass, let renderPipelineState = renderPipelineStateForCurrentSimulation() else { return }
+        
+        // Ensure that if we are using indirect command buffers that the operation is valid
+        guard state.useIndirectCommandBuffersForRendering.implies(statement: renderPipelineState.supportIndirectCommandBuffers) else {
+            fatalError("Ensure that the render pipeline state supports indirect commands buffers")
+        }
 
         renderEncoder.pushDebugGroup("Particle rendering")
         renderEncoder.label = "Render particles encoder (instanced)"
@@ -448,22 +576,32 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
         else { // Spheres
 
             let sharedModel = particles.first!.model!
-
-            for mesh in sharedModel.meshes {
-                for vb in mesh.mtkMesh.vertexBuffers {
-                    renderEncoder.setVertexBuffer(vb.buffer, offset: 0, index: 0)
+            
+            if state.useIndirectCommandBuffersForRendering {
+                
+                if !ephemeralState.icbHasRenderCommandsEncoded {
+                    encodeRenderCommandsIntoICB(forModel: sharedModel)
+                    
+                    // We have now encoded commands into the ICB
+                    ephemeralState.icbHasRenderCommandsEncoded = true
+                }
+                
+                encodeResourceUsageForICBRendering(renderEncoder, forModel: sharedModel)
+                renderEncoder.executeCommandsInBuffer(indirectCommandBuffer, range: 0..<sharedModel.drawCallsToRender)
+            }
+            else {
+                sharedModel.traverseMeshTree { mtkMeshBuffer in
+                    renderEncoder.setVertexBuffer(mtkMeshBuffer.buffer, offset: mtkMeshBuffer.offset, index: 0)
                     renderEncoder.setVertexBuffer(uniforms.dynamicBuffer, offset: uniforms.offset, index: 1)
                     renderEncoder.setVertexBuffer(particleDataPool.refreshedBuffer, offset: 0, index: 2)
-
-                    for submesh in mesh.submeshes {
-                        let mtkSubmesh = submesh.mtkSubmesh!
-                        renderEncoder.drawIndexedPrimitives(type: .triangle,
-                                                            indexCount: mtkSubmesh.indexCount,
-                                                            indexType: mtkSubmesh.indexType,
-                                                            indexBuffer: mtkSubmesh.indexBuffer.buffer,
-                                                            indexBufferOffset: mtkSubmesh.indexBuffer.offset,
-                                                            instanceCount: particlesInSimulation)
-                    }
+                } submeshHandler: { submesh in
+                    let mtkSubmesh = submesh.mtkSubmesh!
+                    renderEncoder.drawIndexedPrimitives(type: .triangle,
+                                                        indexCount: mtkSubmesh.indexCount,
+                                                        indexType: mtkSubmesh.indexType,
+                                                        indexBuffer: mtkSubmesh.indexBuffer.buffer,
+                                                        indexBufferOffset: mtkSubmesh.indexBuffer.offset,
+                                                        instanceCount: particlesInSimulation)
                 }
             }
         }

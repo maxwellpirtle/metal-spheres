@@ -41,6 +41,10 @@ extension Array where Element : AnyObject {
 
 extension Bool {
     mutating func negate() { self = !self }
+    
+    /// Computes the implication statement with the given boolean
+    /// self -> input
+    func implies(statement: Bool) -> Bool { !self || statement }
 }
 
 extension Comparable {

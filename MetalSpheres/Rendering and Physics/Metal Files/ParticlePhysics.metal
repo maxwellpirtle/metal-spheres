@@ -27,17 +27,26 @@ namespace {
     constant bool pointParticles            [[ function_constant(2) ]];
     constant bool sphericalParticles = !pointParticles;
     
-    // Compile shaders with this flag ONLY IF the program can guarantee
-    // that the number of particles simulated in the scene is a multiple of
-    // the simdgroup size of the GPU
-    constant bool optimizeGPUExecution      [[ function_constant(3) ]];
-    constant bool checkSimdgroupOutOfBounds = !optimizeGPUExecution;
-    
     /// The amount of time between frames (1/60 of a second expected)
     constant constexpr float simulation_time_step_size = 0.016666666667f;
 }
 
 #pragma mark - Physics Kernel -
+
+#ifdef __METAL_IOS__
+typedef struct {
+    
+    /// The indirect command buffer into which we encode
+    /// compute pipeline commands. This ICB shares storage with the render pipeline
+    /// ICB in the `PRenderICBEncoding` struct below
+    command_buffer icb;
+    
+} PComputeICBEncoding;
+
+kernel void EncodeParticleComputeCommands(constant PComputeICBEncoding &buff [[ buffer(0) ]],
+                                          device uint *index_buffer [[buffer(1)]])
+{}
+#endif
 
 // All-pairs simulation O(n^2)
 
@@ -161,6 +170,18 @@ kernel void ThreadgroupParticleKernel(constant uint &maximumValidThreadIndex    
 
 typedef struct {
     
+    /// This is the indirect command buffer object created by the device
+    /// object in `device.makeIndirectCommandBuffer(descriptor:)` that we encode
+    /// draw commands into on the GPU. We do this to save a considerable amount
+    /// of time by pre-encoding the render coommands for thousands of particles
+    /// and reusing this each frame. We only need to run more dispatches when more particles are added
+    /// to the scene.
+    command_buffer icb [[ id(0) ]];
+    
+} PRenderICBEncoding;
+
+typedef struct {
+    
     /// This position is assumed to be defined within the pre-NDC system, A.K.A model space
     float3 position [[ attribute(0), function_constant(sphericalParticles) ]];
     
@@ -184,6 +205,18 @@ typedef struct {
     float charge;
     
 } PFragment;
+
+kernel void EncodeParticleRenderCommands(constant PRenderICBEncoding &cpuEncodedBuffer [[ buffer(0) ]],
+                                         const ushort2 threadsPerGrid                  [[ threads_per_grid ]],
+                                         const ushort2 threadPos                       [[ thread_position_in_grid ]])
+{
+ 
+    // The index in the thread dispatch
+    const uint gridIndex { static_cast<uint>(threadPos.x + threadsPerGrid.x * threadPos.y) };
+    
+    // First, create a render command that is encoded into the ICB
+    render_command icb_render_command { render_command(cpuEncodedBuffer.icb, gridIndex) };
+}
 
 vertex PFragment ParticleVertexStage(const PVertex           vIn                   [[ stage_in, function_constant(sphericalParticles) ]],
                                      

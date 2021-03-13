@@ -12,6 +12,23 @@ class MSRendererCore: NSObject, MTKViewDelegate {
     
     // MARK: - Properties -
     
+    /// Represents the rendering state of the entire render pipeline for
+    /// this applications
+    private struct State {
+        /// Whether or not the next frame should be captured in Xcode for debugging purposes
+        var captureCommandsInXcodeNextFrame = false
+    }
+    
+    /// Represents a particular rendering stage within the entire application render pipeline
+    struct RenderingPhase: OptionSet {
+        typealias RawValue = Int
+        let rawValue: Int
+        init(rawValue: Int) { self.rawValue = rawValue }
+        
+        // Main render pass render stage
+        static let gBufferPass: RenderingPhase = .init(rawValue: 0)
+    }
+    
     /// The scene that is being rendered
     weak var scene: MSParticleScene! { view.scene as? MSParticleScene }
     
@@ -26,7 +43,7 @@ class MSRendererCore: NSObject, MTKViewDelegate {
     var framesInFlight: Int { MSConstants.framesInFlight }
     
     /// Describes certain properties of the renderer, such as what is being drawn
-    private var state: MSRenderCoreState = .default
+    private var state: State = .init()
     
     // MARK: - Metal Lifecycle Objects -
     
@@ -133,7 +150,7 @@ class MSRendererCore: NSObject, MTKViewDelegate {
                                                options: .storageModeShared,
                                                addressSpace: .constant,
                                                copies: MSConstants.framesInFlight,
-                                               shareMemory: true)
+                                               shareMemory: false)
         }
         
         // Set the delegate of the view to the renderer
@@ -187,6 +204,12 @@ class MSRendererCore: NSObject, MTKViewDelegate {
             //---- End ----\\
         }
         
+        aboutToRender:
+        do {
+            particleRenderer.renderingWillBegin(with: commandBuffer, phase: .gBufferPass, uniforms: uniformsGPU)
+            axisRenderer.renderingWillBegin(with: commandBuffer, phase: .gBufferPass, uniforms: uniformsGPU)
+        }
+        
         //---- 1st Render Pass ----\\
         guard let frameRenderPassDescriptor = view.currentRenderPassDescriptor,
               let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: frameRenderPassDescriptor) else { return }
@@ -211,8 +234,6 @@ class MSRendererCore: NSObject, MTKViewDelegate {
         drawAxis:
         do {
             //---- Coordinate Axes Render ----\\
-            guard state.drawsCoordinateSystem else { break drawAxis }
-            
             axisRenderer.encodeRenderCommands(into: renderEncoder, commandBuffer: commandBuffer, uniforms: uniformsGPU)
             //---- End ----\\
         }

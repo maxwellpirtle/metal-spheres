@@ -13,8 +13,6 @@ typealias MTKMeshGroup = [MTKMesh]
 typealias MTKSubmeshGroup = [MTKSubmesh]
 typealias MDLMeshGroup = [MDLMesh]
 
-typealias MSMeshPartitionGroup = [MSModelMesh.Partition]
-
 class MSModelMesh {
     
     /// The model that is represented by this mesh
@@ -24,12 +22,16 @@ class MSModelMesh {
     private(set) unowned var device: MTLDevice
     
     /// The `MTKMesh` object that stores the buffer backing the vertex data
-    private(set) var mtkMesh: MTKMesh
+    private var mtkMesh: MTKMesh
     
     /// A set of submesh objects representing the submesh data for each `MDLMesh` loaded from the asset
-    private(set) var submeshes: MSMeshPartitionGroup = []
+    private(set) var submeshes: [MSModelMesh.Partition] = []
     
-    // MARK: Init
+    /// The `MTLBuffer` backing the vertex data described by this mesh
+    var modelIOBufferBacking: [MTKMeshBuffer] { mtkMesh.vertexBuffers }
+    
+    // MARK: - Initializer -
+    
     init(mtkMesh: MTKMesh, mdlMesh: MDLMesh, device: MTLDevice) {
         self.mtkMesh = mtkMesh
         self.device = device

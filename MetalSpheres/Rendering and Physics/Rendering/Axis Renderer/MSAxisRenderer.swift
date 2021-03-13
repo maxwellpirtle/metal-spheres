@@ -11,6 +11,15 @@ import Metal
 /// An `MSAxisRenderer` represents a type of object that renders a single reference frame into the
 /// scene to make it easier to see the spatial relations between points for debugging and general-use purposes
 final class MSAxisRenderer: NSObject, MSRenderer {
+  
+    /// Represents the rendering state of the axis rendering portion of the pipeline
+    private struct State {
+        /// Whether or not the coordinate axis should be drawns
+        var drawsCoordinateSystem = false
+    }
+    
+    /// The state of the render pipeline for this portion of the pipeline (axis drawing)
+    private var state: State = .init()
 
     /// The pipeline state of the axis render pass
     private var renderPipelineState: MTLRenderPipelineState!
@@ -33,7 +42,13 @@ final class MSAxisRenderer: NSObject, MSRenderer {
         self.renderPipelineState = try device.makeRenderPipelineState(descriptor: renderPipelineDescriptor)
     }
     
+    func renderingWillBegin(with commandBuffer: MTLCommandBuffer, phase: MSRendererCore.RenderingPhase, uniforms: MSBuffer<MSUniforms>) {}
+    
     func encodeRenderCommands(into renderEncoder: MTLRenderCommandEncoder, commandBuffer: MTLCommandBuffer, uniforms: MSBuffer<MSUniforms>) {
+        
+        // Are we drawing anything?
+        guard state.drawsCoordinateSystem else { return }
+        
         renderEncoder.setRenderPipelineState(renderPipelineState)
         
         let vertexBytes = [MSConstants.xyplane, MSConstants.xzplane, MSConstants.yzplane]
