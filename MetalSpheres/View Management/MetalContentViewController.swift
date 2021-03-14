@@ -7,10 +7,13 @@
 //  in the main window
     
 
+#if os(macOS)
 import Cocoa
+#endif
 import MetalKit.MTKView
 import Relativity
 
+#if os(macOS)
 class MetalContentViewController: NSViewController {
     
     // MARK: - Properties -
@@ -148,3 +151,100 @@ class MetalContentViewController: NSViewController {
         sender.title = { (points: Bool) in points ? InteractionConstants.togglePointParticleLabel : InteractionConstants.toggleSphericalParticleLabel }(points)
     }
 }
+#elseif os(iOS)
+class MetalContentViewController: UIViewController {
+    
+    // MARK: - Properties -
+    
+    /// The `MSSceneView` instance whose content is managed by this controller
+    var sceneView: MSSceneView { view as! MSSceneView }
+    
+    /// The scene that is processed and rendered
+    var scene: MSScene! { sceneController.scene }
+    
+    /// An `MSRendererCore` instance that is used to render the scene
+    var renderer: MSRendererCore!
+    
+    /// An object that manages node creation for the scene
+    var sceneController: MSSceneController!
+    
+    /// Manages the user interaction with the camera
+    var lakitu: MSLakitu!
+    
+    
+    // MARK: - View Loaded -
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        guard let view = view as? MSSceneView else { fatalError("View must be a subclass of `MTKSceneView`") }
+        guard let device = MTLCreateSystemDefaultDevice() else { fatalError("Expected GPU") }
+        
+        view.device = device
+        view.colorPixelFormat = .bgra8Unorm
+        view.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1.0)
+        view.clearDepth = 1.0
+        view.depthStencilPixelFormat = .depth32Float
+        
+        renderer = try! MSRendererCore(view: view)
+        
+        // Configure a custom scene
+        let scene = SimulationScene(renderer: renderer)
+        sceneController = MSSceneController(scene: scene)
+        view.scene = scene
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Forward messages to the scene
+        scene?.didMove(to: sceneView)
+        
+        // We expect the scene to have a camera at this point to create a lakitu to control it
+        guard let camera = scene.camera else { preconditionFailure("Camera expected at display time") }
+        
+        lakitu = MSLakitu(camera: camera)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        // Dispatch a size update
+        renderer.mtkView(sceneView, drawableSizeWillChange: sceneView.drawableSize)
+    }
+    
+    // MARK: - User Interaction -
+    
+    // MARK: User Interaction
+    
+    @IBAction func requestedSimulationPause(_ sender: UIMenuItem) {
+        
+        // Pause/unpause the current simulation
+        renderer.pauseSimulation()
+        
+        // Query if the simulation is now paused
+        let paused = renderer.isPaused
+        
+        // If we have requested to pause,
+        sender.title = { (isPaused: Bool) in isPaused ? InteractionConstants.pauseSimulationLabel : InteractionConstants.resumeSimulationLabel }(paused)
+        
+    }
+    
+    @IBAction func toggleCoordinateFrameVisibility(_ sender: UIMenuItem) {
+        
+    }
+    
+    @IBAction func togglePointParticleSetting(_ sender: UIMenuItem) {
+        
+        // Toggle/untoggle point particles
+        renderer.togglePointParticleRendering()
+        
+        // Query if the simulation is now paused
+        let points = renderer.isRenderingParticlesAsPoints
+        
+        // If we have requested to pause,
+        sender.title = { (points: Bool) in points ? InteractionConstants.togglePointParticleLabel : InteractionConstants.toggleSphericalParticleLabel }(points)
+    }
+}
+
+#endif

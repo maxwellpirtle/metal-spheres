@@ -6,7 +6,10 @@
 //
     
 
+
+#if os(macOS)
 import AppKit.NSView
+#endif
 import simd.matrix
 import GameplayKit.GKRandomDistribution
 
@@ -62,7 +65,11 @@ extension ClosedRange where Bound == Float {
     }
 }
 
+#if os(macOS)
 extension NSView { var aspectRatio: CGFloat { frame.size.height / frame.size.width } }
+#elseif os(iOS)
+extension UIView { var aspectRatio: CGFloat { frame.size.height / frame.size.width } }
+#endif
 
 extension GKRandomDistribution {
     /// A distribution that always returns the given value

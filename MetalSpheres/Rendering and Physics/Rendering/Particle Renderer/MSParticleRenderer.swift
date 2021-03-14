@@ -267,7 +267,14 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
         do {
             // We can read and write from the particle buffer, but should not do so for the force buffer; hence the storage modes described.
             // NOTE: Implicitly tracked resources
-            particleDataPool        = .init(device: device, options: .storageModeManaged, length: Self.maximumParticlesInSimulation * MemoryLayout<Particle>.stride)
+            
+            #if os(macOS)
+            let storageMode = MTLResourceOptions.storageModeManaged
+            #elseif os(iOS)
+            let storageMode = MTLResourceOptions.storageModeShared
+            #endif
+            
+            particleDataPool        = .init(device: device, options: [storageMode], length: Self.maximumParticlesInSimulation * MemoryLayout<Particle>.stride)
             
             // Synchronizing the CPU/GPU
             particleSyncSharedEvent = device.makeSharedEvent()
@@ -287,7 +294,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
                 indirectCommandBufferDescriptor.maxVertexBufferBindCount = 5
                 indirectCommandBufferDescriptor.maxFragmentBufferBindCount = 5
                 
-                indirectCommandBuffer = device.makeIndirectCommandBuffer(descriptor: indirectCommandBufferDescriptor, maxCommandCount: 1, options: .storageModeManaged)!
+                indirectCommandBuffer = device.makeIndirectCommandBuffer(descriptor: indirectCommandBufferDescriptor, maxCommandCount: 1, options: [storageMode])!
                 indirectCommandBuffer.label = "Particle renderer ICB"
 
                 // Create the buffers the ICB references in its pre-encoded render commands
@@ -309,6 +316,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
 
     // MARK: - Metal Resource Management -
 
+    #if os(macOS)
     private func encodeSynchronizeManagedBuffers(_ commandBuffer: MTLCommandBuffer) {
         guard let blitEncoder = commandBuffer.makeBlitCommandEncoder() else
         {
@@ -319,6 +327,7 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
         blitEncoder.synchronize(resource: particleDataPool.refreshedBuffer)
         blitEncoder.endEncoding()
     }
+    #endif
 
     private func unsafelyReadGPUParticleBuffer() {
         // The data stored in the managed particle buffer is read and indexed into using the indicies
@@ -332,11 +341,16 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
 
     private func unsafelyWriteParticleDataIntoGPUBuffers() {
         do {
-            let entireBuffer = 0..<particles.count * MemoryLayout<Particle>.stride
-
             var kernelData = particles.map { $0.physicalState.kernelState }
             particleDataPool.unsafelyWrite(&kernelData)
+            
+            #if os(macOS)
+            let entireBuffer = 0..<particles.count * MemoryLayout<Particle>.stride
+            
+            // On macOS, we have opted to use a managed buffer, so we must explicitly tell Metal
+            // that the CPU has written into the buffer
             particleDataPool.didModifyRange(entireBuffer)
+            #endif
         }
     }
     
@@ -503,9 +517,11 @@ final class MSParticleRenderer: NSObject, MSUniverseDelegate, MSRenderer {
         computeEncoder.popDebugGroup()
         computeEncoder.endEncoding()
 
+        #if os(macOS)
         // Since we have modified a resource with `.storageModeManaged` on the GPU,
         // we must encode a blit pass to ensure the contents are well-defined on the CPU
         encodeSynchronizeManagedBuffers(commandBuffer)
+        #endif
 
         // We access the contents of the current channel that is waiting
         // to be scheduled to the GPU. Then, at the end of the function,

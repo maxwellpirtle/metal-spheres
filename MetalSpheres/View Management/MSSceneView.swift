@@ -12,5 +12,7 @@ class MSSceneView: MTKView {
     /// The scene instance that is referenced by this view
     var scene: MSScene?
 
+    #if os(macOS)
     override var acceptsFirstResponder: Bool { true }
+    #endif
 }

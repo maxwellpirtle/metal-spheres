@@ -61,11 +61,13 @@ class MSBuffer<EncodedType> : MSMemory<EncodedType> {
         dynamicBuffer.unsafelyRead(capacity: capacity, reading: block)
     }
     
+    #if os(macOS)
     /// Calls `didModifyRange(_:)` on the underlying dynamic buffer.
     /// Use this if the underlying dynamic buffer was written to
     /// and the storage mode of the buffer was `.storageModeManaged`
     override func didModifyRange(_ range: Range<Int>) {
         dynamicBuffer.didModifyRange(range)
     }
+    #endif
 }
 

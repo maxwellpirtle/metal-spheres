@@ -60,6 +60,7 @@ class MSTileBuffer<EncodedType> : MSMemory<EncodedType> {
         refreshedBuffer.unsafelyRead(capacity: capacity, reading: block)
     }
     
+    #if os(macOS)
     /// Calls `didModifyRange(_:)` on the underlying buffer we are writing to.
     /// Use this if the underlying dynamic buffer was written to
     /// and the storage mode of the buffer was `.storageModeManaged`
@@ -67,4 +68,5 @@ class MSTileBuffer<EncodedType> : MSMemory<EncodedType> {
         refreshedBuffer.didModifyRange(range)
         referenceBuffer.didModifyRange(range)
     }
+    #endif
 }

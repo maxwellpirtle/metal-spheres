@@ -43,8 +43,8 @@ typedef struct {
     
 } PComputeICBEncoding;
 
-kernel void EncodeParticleComputeCommands(constant PComputeICBEncoding &buff [[ buffer(0) ]],
-                                          device uint *index_buffer [[buffer(1)]])
+kernel void EncodeParticleComputeCommands(constant PComputeICBEncoding &container [[ buffer(0) ]],
+                                          device uint *index_buffer [[ buffer(1) ]])
 {}
 #endif
 
@@ -164,7 +164,7 @@ kernel void ThreadgroupParticleKernel(constant uint &maximumValidThreadIndex    
     PhysicsCompute::project_in_time(particleManagedByThisThreadNextFrame, acceleration, simulation_time_step_size);
 }
 
-#ifdef __METAL_MACOS__
+#if defined(__METAL_MACOS__)
 
 #pragma mark - Render Pipeline -
 
@@ -261,11 +261,19 @@ fragment half4 ParticleFragmentStage(const PFragment pf [[ stage_in ]])
     const half massRatio { half(pf.mass / MAX_PARTICLE_MASS) };
     return interpolate(lightColor, darkColor, massRatio);
 }
-
 #elif __METAL_IOS__
 
 #pragma mark - Tile-based Deferred Rendering Pipeline -
 
 // To be implemented
+
+struct ImageblockData {
+    float image_depth   [[ raster_order_group(0) ]];
+    float image_depthII [[ raster_order_group(1) ]];
+};
+
+kernel void imageblock_kernel(imageblock<ImageblockData, imageblock_layout_explicit> imageblock_explicit) {
+    threadgroup_imageblock ImageblockData *data = imageblock_explicit.data(0);
+}
 
 #endif // __METAL_MACOS__

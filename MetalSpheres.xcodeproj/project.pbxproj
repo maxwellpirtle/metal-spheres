@@ -14,6 +14,68 @@
 		1411C5E8258D214D005B477C /* MSCameraInterfaceParameters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1411C5E7258D214D005B477C /* MSCameraInterfaceParameters.swift */; };
 		1417D6AA25E340AE005ECE7F /* MTLComputeCommandEncoderExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1417D6A925E340AE005ECE7F /* MTLComputeCommandEncoderExtension.swift */; };
 		141A5950256C49740080B1D2 /* Axis.metal in Sources */ = {isa = PBXBuildFile; fileRef = 141A594F256C49740080B1D2 /* Axis.metal */; };
+		141AE06925FDB49400024A26 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141AE06825FDB49400024A26 /* AppDelegate.swift */; };
+		141AE06B25FDB49400024A26 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141AE06A25FDB49400024A26 /* SceneDelegate.swift */; };
+		141AE07025FDB49400024A26 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 141AE06E25FDB49400024A26 /* Main.storyboard */; };
+		141AE07225FDB49500024A26 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 141AE07125FDB49500024A26 /* Assets.xcassets */; };
+		141AE07525FDB49500024A26 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 141AE07325FDB49500024A26 /* LaunchScreen.storyboard */; };
+		141AE08525FDB52100024A26 /* MSSceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C8EEC324F5E09700BC5D4E /* MSSceneView.swift */; };
+		141AE08725FDB52100024A26 /* MSSceneController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14358C402501D70D0035C602 /* MSSceneController.swift */; };
+		141AE08825FDB52100024A26 /* MetalContentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454256D24F2C0E5005926FB /* MetalContentViewController.swift */; };
+		141AE08925FDB52100024A26 /* MSLakitu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FA4212258AA6F500194D87 /* MSLakitu.swift */; };
+		141AE08A25FDB52100024A26 /* MSUserInteractionConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14082257259576DF00DFD511 /* MSUserInteractionConstants.swift */; };
+		141AE08B25FDB52100024A26 /* MSCameraInterfaceParameters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1411C5E7258D214D005B477C /* MSCameraInterfaceParameters.swift */; };
+		141AE09025FDB56700024A26 /* Relativity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1408526D2502880200DF176B /* Relativity.framework */; };
+		141AE09125FDB56700024A26 /* Relativity.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1408526D2502880200DF176B /* Relativity.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		141AE09425FDB57600024A26 /* SimulationScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A9C81B2502E937004B01E8 /* SimulationScene.swift */; };
+		141AE09625FDB58A00024A26 /* Uniforms.metal in Sources */ = {isa = PBXBuildFile; fileRef = 14A9C8182502E751004B01E8 /* Uniforms.metal */; };
+		141AE09725FDB58A00024A26 /* PhysicsCompute.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1442DECE255B76ED0009980E /* PhysicsCompute.metal */; };
+		141AE09825FDB58A00024A26 /* ParticlePhysics.metal in Sources */ = {isa = PBXBuildFile; fileRef = 14E2BE5E2575E3F300C8DD65 /* ParticlePhysics.metal */; };
+		141AE09925FDB58A00024A26 /* Axis.metal in Sources */ = {isa = PBXBuildFile; fileRef = 141A594F256C49740080B1D2 /* Axis.metal */; };
+		141AE09A25FDB58A00024A26 /* Polygon.metal in Sources */ = {isa = PBXBuildFile; fileRef = 142031352505BABB00F62098 /* Polygon.metal */; };
+		141AE09B25FDB58A00024A26 /* MetalExtension.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1465647D257D85E500C43DAF /* MetalExtension.metal */; };
+		141AE09D25FDB59600024A26 /* MSPhysicalState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B75DA72558A151002FAFAC /* MSPhysicalState.swift */; };
+		141AE09F25FDB59B00024A26 /* MSAxisRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F68B2E25FA60BC0061404B /* MSAxisRenderer.swift */; };
+		141AE0A125FDB59F00024A26 /* MSRendererCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454258724F2C489005926FB /* MSRendererCore.swift */; };
+		141AE0A225FDB59F00024A26 /* MSRendererCoreDeviceExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C8EEBC24F5A8C900BC5D4E /* MSRendererCoreDeviceExtension.swift */; };
+		141AE0A425FDB5A300024A26 /* MSScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454259C24F34340005926FB /* MSScene.swift */; };
+		141AE0A525FDB5A300024A26 /* MSFixedCameraNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9F24A250D7E6700FD4631 /* MSFixedCameraNode.swift */; };
+		141AE0A625FDB5A300024A26 /* MSSpriteNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14358C4225025F630035C602 /* MSSpriteNode.swift */; };
+		141AE0A725FDB5A300024A26 /* MSParticleNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145021982573376700FB2460 /* MSParticleNode.swift */; };
+		141AE0A825FDB5A300024A26 /* MSCameraNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14358C3E2501D60C0035C602 /* MSCameraNode.swift */; };
+		141AE0A925FDB5A300024A26 /* MSNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1491821C25000178009CEE8B /* MSNode.swift */; };
+		141AE0AA25FDB5A300024A26 /* MSParticleScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14CB15E8256F57E20050EF65 /* MSParticleScene.swift */; };
+		141AE0AC25FDB5A700024A26 /* MSParticleRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B75DA22558A043002FAFAC /* MSParticleRenderer.swift */; };
+		141AE0AD25FDB5A700024A26 /* MSUniverseDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14500C8225728B370097F615 /* MSUniverseDelegate.swift */; };
+		141AE0AF25FDB5AB00024A26 /* simd_frustrum.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DFE73C2576DC9E00B2A169 /* simd_frustrum.swift */; };
+		141AE0B025FDB5AB00024A26 /* MSRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 144D72E025FA62A2005F1E4D /* MSRenderer.swift */; };
+		141AE0B125FDB5AB00024A26 /* GKFixedRandomSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1426B94D25EB1C1B008FAE0E /* GKFixedRandomSource.swift */; };
+		141AE0B225FDB5AB00024A26 /* GKSphericalVectorDistribution.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1439EC5525F46943005AD2A5 /* GKSphericalVectorDistribution.swift */; };
+		141AE0B325FDB5AB00024A26 /* GKCylindricalVectorDistribution.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1408223A2593FF1A00DFD511 /* GKCylindricalVectorDistribution.swift */; };
+		141AE0B425FDB5AB00024A26 /* MSConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1492893E256C516800AB762F /* MSConstants.swift */; };
+		141AE0B625FDB5B500024A26 /* MSModelMesh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14358C322501767A0035C602 /* MSModelMesh.swift */; };
+		141AE0B725FDB5B500024A26 /* MSModelLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454259324F2C79C005926FB /* MSModelLoader.swift */; };
+		141AE0B825FDB5B500024A26 /* MSGeometryClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1461B78925744F5B00D2AAB9 /* MSGeometryClass.swift */; };
+		141AE0B925FDB5B500024A26 /* MSModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454258F24F2C710005926FB /* MSModel.swift */; };
+		141AE0BB25FDB5B900024A26 /* MSBufferPairAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1428634725E205BD003DE037 /* MSBufferPairAllocator.swift */; };
+		141AE0BC25FDB5B900024A26 /* MSTileBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1452D36B25E1EFF9001E1009 /* MSTileBuffer.swift */; };
+		141AE0BD25FDB5B900024A26 /* MSBufferRingAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145425A024F345E9005926FB /* MSBufferRingAllocator.swift */; };
+		141AE0BE25FDB5B900024A26 /* MSBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1428634125E20438003DE037 /* MSBuffer.swift */; };
+		141AE0BF25FDB5B900024A26 /* MTLAddressSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14947F1825FB24FD003AE867 /* MTLAddressSpace.swift */; };
+		141AE0C025FDB5B900024A26 /* MSMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1428634425E20489003DE037 /* MSMemory.swift */; };
+		141AE0C125FDB5B900024A26 /* MSParticleCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B9FA4C257ACDF1000795E3 /* MSParticleCache.swift */; };
+		141AE0C225FDB5B900024A26 /* MTLCPUBlitEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1429620625FBDFC100D6CD29 /* MTLCPUBlitEncoder.swift */; };
+		141AE0C425FDB5BF00024A26 /* MDLVertexAttributeDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C80B592502F5B9003399A4 /* MDLVertexAttributeDescriptor.swift */; };
+		141AE0C525FDB5BF00024A26 /* MTLVertexAttributeDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142B0B0424FDEAFF0065FBF7 /* MTLVertexAttributeDescriptor.swift */; };
+		141AE0C625FDB5BF00024A26 /* ConvenienceExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142B0B0724FDED450065FBF7 /* ConvenienceExtensions.swift */; };
+		141AE0C825FDB5CE00024A26 /* MTLDeviceExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14947F1225FB2498003AE867 /* MTLDeviceExtension.swift */; };
+		141AE0C925FDB5CE00024A26 /* FallibleArrayAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C8EEBF24F5C32F00BC5D4E /* FallibleArrayAllocator.swift */; };
+		141AE0CA25FDB5CE00024A26 /* MTLBufferExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14439650257848EC0019DA49 /* MTLBufferExtension.swift */; };
+		141AE0CB25FDB5CE00024A26 /* SwiftExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A9C81D2502F1AC004B01E8 /* SwiftExtensions.swift */; };
+		141AE0CC25FDB5CE00024A26 /* MTLComputeCommandEncoderExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1417D6A925E340AE005ECE7F /* MTLComputeCommandEncoderExtension.swift */; };
+		141AE0CD25FDB5CE00024A26 /* MSTransformExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14358C2B250048860035C602 /* MSTransformExtension.swift */; };
+		141AE0CE25FDB5CE00024A26 /* simdExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 144F217E25EC448100A63905 /* simdExtensions.swift */; };
+		141AE0CF25FDB5CE00024A26 /* MTLSizeExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14442B1D25D87352004D6E77 /* MTLSizeExtension.swift */; };
 		141FE8A4258A584D00C7209C /* MetalContentWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141FE8A3258A584D00C7209C /* MetalContentWindowController.swift */; };
 		142031362505BABB00F62098 /* Polygon.metal in Sources */ = {isa = PBXBuildFile; fileRef = 142031352505BABB00F62098 /* Polygon.metal */; };
 		1426B94E25EB1C1B008FAE0E /* GKFixedRandomSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1426B94D25EB1C1B008FAE0E /* GKFixedRandomSource.swift */; };
@@ -105,6 +167,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		141AE09225FDB56700024A26 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				141AE09125FDB56700024A26 /* Relativity.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1454258424F2C238005926FB /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -125,6 +198,13 @@
 		1411C5E7258D214D005B477C /* MSCameraInterfaceParameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MSCameraInterfaceParameters.swift; sourceTree = "<group>"; };
 		1417D6A925E340AE005ECE7F /* MTLComputeCommandEncoderExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTLComputeCommandEncoderExtension.swift; sourceTree = "<group>"; };
 		141A594F256C49740080B1D2 /* Axis.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Axis.metal; sourceTree = "<group>"; };
+		141AE06625FDB49400024A26 /* MetalSpheresiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MetalSpheresiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		141AE06825FDB49400024A26 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		141AE06A25FDB49400024A26 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		141AE06F25FDB49400024A26 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		141AE07125FDB49500024A26 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		141AE07425FDB49500024A26 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		141AE07625FDB49500024A26 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		141FE8A3258A584D00C7209C /* MetalContentWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalContentWindowController.swift; sourceTree = "<group>"; };
 		142031352505BABB00F62098 /* Polygon.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Polygon.metal; sourceTree = "<group>"; };
 		1426B94D25EB1C1B008FAE0E /* GKFixedRandomSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GKFixedRandomSource.swift; sourceTree = "<group>"; };
@@ -202,6 +282,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		141AE06325FDB49400024A26 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				141AE09025FDB56700024A26 /* Relativity.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1454256524F2C0E4005926FB /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -242,6 +330,19 @@
 			path = "Render Helpers";
 			sourceTree = "<group>";
 		};
+		141AE07E25FDB4A800024A26 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				141AE07625FDB49500024A26 /* Info.plist */,
+				141AE06825FDB49400024A26 /* AppDelegate.swift */,
+				141AE06A25FDB49400024A26 /* SceneDelegate.swift */,
+				141AE07125FDB49500024A26 /* Assets.xcassets */,
+				141AE07325FDB49500024A26 /* LaunchScreen.storyboard */,
+				141AE06E25FDB49400024A26 /* Main.storyboard */,
+			);
+			path = iOS;
+			sourceTree = "<group>";
+		};
 		14358C112500043C0035C602 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -274,6 +375,7 @@
 			children = (
 				1454256824F2C0E4005926FB /* MetalSpheres.app */,
 				146023EB2558982C006BA9F8 /* MetalSpheresTests.xctest */,
+				141AE06625FDB49400024A26 /* MetalSpheresiOS.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -284,6 +386,7 @@
 				146023E425586FA3006BA9F8 /* Assets */,
 				14C8EEBE24F5C30E00BC5D4E /* Custom Extensions */,
 				1454258A24F2C542005926FB /* Entitlements */,
+				141AE07E25FDB4A800024A26 /* iOS */,
 				14B37F1C25FD325A00760138 /* Logging */,
 				1454258924F2C4D5005926FB /* macOS */,
 				1454259F24F345D5005926FB /* Memory Management */,
@@ -510,6 +613,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		141AE06525FDB49400024A26 /* MetalSpheresiOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 141AE07B25FDB49500024A26 /* Build configuration list for PBXNativeTarget "MetalSpheresiOS" */;
+			buildPhases = (
+				141AE06225FDB49400024A26 /* Sources */,
+				141AE06325FDB49400024A26 /* Frameworks */,
+				141AE06425FDB49400024A26 /* Resources */,
+				141AE09225FDB56700024A26 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MetalSpheresiOS;
+			productName = MetalSpheresiOS;
+			productReference = 141AE06625FDB49400024A26 /* MetalSpheresiOS.app */;
+			productType = "com.apple.product-type.application";
+		};
 		1454256724F2C0E4005926FB /* MetalSpheres */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1454257824F2C0E6005926FB /* Build configuration list for PBXNativeTarget "MetalSpheres" */;
@@ -554,10 +675,13 @@
 		1454256024F2C0E4005926FB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1210;
+				LastSwiftUpdateCheck = 1240;
 				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "Maxwell Pirtle";
 				TargetAttributes = {
+					141AE06525FDB49400024A26 = {
+						CreatedOnToolsVersion = 12.4;
+					};
 					1454256724F2C0E4005926FB = {
 						CreatedOnToolsVersion = 11.6;
 						LastSwiftMigration = 1160;
@@ -592,6 +716,7 @@
 			targets = (
 				1454256724F2C0E4005926FB /* MetalSpheres */,
 				146023EA2558982C006BA9F8 /* MetalSpheresTests */,
+				141AE06525FDB49400024A26 /* MetalSpheresiOS */,
 			);
 		};
 /* End PBXProject section */
@@ -614,6 +739,16 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
+		141AE06425FDB49400024A26 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				141AE07525FDB49500024A26 /* LaunchScreen.storyboard in Resources */,
+				141AE07225FDB49500024A26 /* Assets.xcassets in Resources */,
+				141AE07025FDB49400024A26 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1454256624F2C0E4005926FB /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -642,6 +777,70 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		141AE06225FDB49400024A26 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				141AE0A925FDB5A300024A26 /* MSNode.swift in Sources */,
+				141AE0B425FDB5AB00024A26 /* MSConstants.swift in Sources */,
+				141AE0C625FDB5BF00024A26 /* ConvenienceExtensions.swift in Sources */,
+				141AE08525FDB52100024A26 /* MSSceneView.swift in Sources */,
+				141AE09F25FDB59B00024A26 /* MSAxisRenderer.swift in Sources */,
+				141AE0C225FDB5B900024A26 /* MTLCPUBlitEncoder.swift in Sources */,
+				141AE09825FDB58A00024A26 /* ParticlePhysics.metal in Sources */,
+				141AE0B025FDB5AB00024A26 /* MSRenderer.swift in Sources */,
+				141AE0A525FDB5A300024A26 /* MSFixedCameraNode.swift in Sources */,
+				141AE0CF25FDB5CE00024A26 /* MTLSizeExtension.swift in Sources */,
+				141AE0C825FDB5CE00024A26 /* MTLDeviceExtension.swift in Sources */,
+				141AE0C425FDB5BF00024A26 /* MDLVertexAttributeDescriptor.swift in Sources */,
+				141AE0BB25FDB5B900024A26 /* MSBufferPairAllocator.swift in Sources */,
+				141AE0CE25FDB5CE00024A26 /* simdExtensions.swift in Sources */,
+				141AE06925FDB49400024A26 /* AppDelegate.swift in Sources */,
+				141AE09925FDB58A00024A26 /* Axis.metal in Sources */,
+				141AE0A225FDB59F00024A26 /* MSRendererCoreDeviceExtension.swift in Sources */,
+				141AE08725FDB52100024A26 /* MSSceneController.swift in Sources */,
+				141AE0AF25FDB5AB00024A26 /* simd_frustrum.swift in Sources */,
+				141AE0BF25FDB5B900024A26 /* MTLAddressSpace.swift in Sources */,
+				141AE0B825FDB5B500024A26 /* MSGeometryClass.swift in Sources */,
+				141AE09725FDB58A00024A26 /* PhysicsCompute.metal in Sources */,
+				141AE06B25FDB49400024A26 /* SceneDelegate.swift in Sources */,
+				141AE09625FDB58A00024A26 /* Uniforms.metal in Sources */,
+				141AE0B225FDB5AB00024A26 /* GKSphericalVectorDistribution.swift in Sources */,
+				141AE0A725FDB5A300024A26 /* MSParticleNode.swift in Sources */,
+				141AE0A825FDB5A300024A26 /* MSCameraNode.swift in Sources */,
+				141AE0C525FDB5BF00024A26 /* MTLVertexAttributeDescriptor.swift in Sources */,
+				141AE0CD25FDB5CE00024A26 /* MSTransformExtension.swift in Sources */,
+				141AE0B725FDB5B500024A26 /* MSModelLoader.swift in Sources */,
+				141AE09A25FDB58A00024A26 /* Polygon.metal in Sources */,
+				141AE0B325FDB5AB00024A26 /* GKCylindricalVectorDistribution.swift in Sources */,
+				141AE08B25FDB52100024A26 /* MSCameraInterfaceParameters.swift in Sources */,
+				141AE0B125FDB5AB00024A26 /* GKFixedRandomSource.swift in Sources */,
+				141AE0C125FDB5B900024A26 /* MSParticleCache.swift in Sources */,
+				141AE08825FDB52100024A26 /* MetalContentViewController.swift in Sources */,
+				141AE0AC25FDB5A700024A26 /* MSParticleRenderer.swift in Sources */,
+				141AE08925FDB52100024A26 /* MSLakitu.swift in Sources */,
+				141AE0AD25FDB5A700024A26 /* MSUniverseDelegate.swift in Sources */,
+				141AE0C025FDB5B900024A26 /* MSMemory.swift in Sources */,
+				141AE0BC25FDB5B900024A26 /* MSTileBuffer.swift in Sources */,
+				141AE0A125FDB59F00024A26 /* MSRendererCore.swift in Sources */,
+				141AE09B25FDB58A00024A26 /* MetalExtension.metal in Sources */,
+				141AE0B625FDB5B500024A26 /* MSModelMesh.swift in Sources */,
+				141AE0AA25FDB5A300024A26 /* MSParticleScene.swift in Sources */,
+				141AE08A25FDB52100024A26 /* MSUserInteractionConstants.swift in Sources */,
+				141AE0CB25FDB5CE00024A26 /* SwiftExtensions.swift in Sources */,
+				141AE0CA25FDB5CE00024A26 /* MTLBufferExtension.swift in Sources */,
+				141AE0BE25FDB5B900024A26 /* MSBuffer.swift in Sources */,
+				141AE09D25FDB59600024A26 /* MSPhysicalState.swift in Sources */,
+				141AE0BD25FDB5B900024A26 /* MSBufferRingAllocator.swift in Sources */,
+				141AE0A425FDB5A300024A26 /* MSScene.swift in Sources */,
+				141AE0B925FDB5B500024A26 /* MSModel.swift in Sources */,
+				141AE0CC25FDB5CE00024A26 /* MTLComputeCommandEncoderExtension.swift in Sources */,
+				141AE0A625FDB5A300024A26 /* MSSpriteNode.swift in Sources */,
+				141AE0C925FDB5CE00024A26 /* FallibleArrayAllocator.swift in Sources */,
+				141AE09425FDB57600024A26 /* SimulationScene.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1454256424F2C0E4005926FB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -725,6 +924,22 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		141AE06E25FDB49400024A26 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				141AE06F25FDB49400024A26 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		141AE07325FDB49500024A26 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				141AE07425FDB49500024A26 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
 		1454257124F2C0E6005926FB /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -736,6 +951,53 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		141AE07725FDB49500024A26 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 7CDJ3XPY2Q;
+				INFOPLIST_FILE = MetalSpheres/iOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.3Labs.MetalSpheresiOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "MetalSpheres/Entitlements/MetalSpheres-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		141AE07825FDB49500024A26 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 7CDJ3XPY2Q;
+				INFOPLIST_FILE = MetalSpheres/iOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.3Labs.MetalSpheresiOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "MetalSpheres/Entitlements/MetalSpheres-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		1454257624F2C0E6005926FB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -954,6 +1216,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		141AE07B25FDB49500024A26 /* Build configuration list for PBXNativeTarget "MetalSpheresiOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				141AE07725FDB49500024A26 /* Debug */,
+				141AE07825FDB49500024A26 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		1454256324F2C0E4005926FB /* Build configuration list for PBXProject "MetalSpheres" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

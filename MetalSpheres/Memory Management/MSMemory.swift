@@ -53,5 +53,7 @@ class MSMemory<EncodedType> {
     func unsafelyWrite(_ value: inout EncodedType, type: EncodedType.Type = EncodedType.self) {}
     func unsafelyWrite<T>(_ value: inout [T], type: T.Type = T.self) {}
     func unsafelyRead<T>(capacity: Int, reading block: (UnsafePointer<T>) -> Void) {}
+    #if os(macOS)
     func didModifyRange(_ range: Range<Int>) {}
+    #endif
 }
