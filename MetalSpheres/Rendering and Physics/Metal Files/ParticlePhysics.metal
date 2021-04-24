@@ -265,15 +265,4 @@ fragment half4 ParticleFragmentStage(const PFragment pf [[ stage_in ]])
 
 #pragma mark - Tile-based Deferred Rendering Pipeline -
 
-// To be implemented
-
-struct ImageblockData {
-    float image_depth   [[ raster_order_group(0) ]];
-    float image_depthII [[ raster_order_group(1) ]];
-};
-
-kernel void imageblock_kernel(imageblock<ImageblockData, imageblock_layout_explicit> imageblock_explicit) {
-    threadgroup_imageblock ImageblockData *data = imageblock_explicit.data(0);
-}
-
 #endif // __METAL_MACOS__

@@ -120,6 +120,15 @@
 		146A6C8E2558D06C005C1212 /* Moon2K.mtl in Resources */ = {isa = PBXBuildFile; fileRef = 146A6C8C2558D06C005C1212 /* Moon2K.mtl */; };
 		146A6C922558D07E005C1212 /* Diffuse_2K.png in Resources */ = {isa = PBXBuildFile; fileRef = 146A6C902558D07D005C1212 /* Diffuse_2K.png */; };
 		146A6C932558D07E005C1212 /* Bump_2K.png in Resources */ = {isa = PBXBuildFile; fileRef = 146A6C912558D07E005C1212 /* Bump_2K.png */; };
+		1476AF6125FE71C900E8DC20 /* train.mtl in Resources */ = {isa = PBXBuildFile; fileRef = 14358C372501D3310035C602 /* train.mtl */; };
+		1476AF6225FE71C900E8DC20 /* Moon2K.mtl in Resources */ = {isa = PBXBuildFile; fileRef = 146A6C8C2558D06C005C1212 /* Moon2K.mtl */; };
+		1476AF6325FE71C900E8DC20 /* Bump_2K.png in Resources */ = {isa = PBXBuildFile; fileRef = 146A6C912558D07E005C1212 /* Bump_2K.png */; };
+		1476AF6425FE71C900E8DC20 /* treefir.obj in Resources */ = {isa = PBXBuildFile; fileRef = 14358C352501D3310035C602 /* treefir.obj */; };
+		1476AF6525FE71C900E8DC20 /* Diffuse_2K.png in Resources */ = {isa = PBXBuildFile; fileRef = 146A6C902558D07D005C1212 /* Diffuse_2K.png */; };
+		1476AF6625FE71C900E8DC20 /* Moon2K.obj in Resources */ = {isa = PBXBuildFile; fileRef = 146A6C8B2558D06C005C1212 /* Moon2K.obj */; };
+		1476AF6725FE71C900E8DC20 /* train-color.png in Resources */ = {isa = PBXBuildFile; fileRef = 14358C362501D3310035C602 /* train-color.png */; };
+		1476AF6825FE71C900E8DC20 /* train.obj in Resources */ = {isa = PBXBuildFile; fileRef = 14358C382501D3310035C602 /* train.obj */; };
+		1476AF6925FE71C900E8DC20 /* treefir.mtl in Resources */ = {isa = PBXBuildFile; fileRef = 14358C342501D3310035C602 /* treefir.mtl */; };
 		1491821D25000178009CEE8B /* MSNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1491821C25000178009CEE8B /* MSNode.swift */; };
 		1492893F256C516800AB762F /* MSConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1492893E256C516800AB762F /* MSConstants.swift */; };
 		14947F1325FB2498003AE867 /* MTLDeviceExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14947F1225FB2498003AE867 /* MTLDeviceExtension.swift */; };
@@ -515,6 +524,8 @@
 		1478C83124F34D8800452E03 /* Rendering */ = {
 			isa = PBXGroup;
 			children = (
+				145021982573376700FB2460 /* MSParticleNode.swift */,
+				14CB15E8256F57E20050EF65 /* MSParticleScene.swift */,
 				14F68B3325FA60CB0061404B /* Axis Renderer */,
 				145C5351255A014F003F582C /* Main Renderer */,
 				1491821E2500017B009CEE8B /* Nodes */,
@@ -545,8 +556,6 @@
 				14358C3E2501D60C0035C602 /* MSCameraNode.swift */,
 				14E9F24A250D7E6700FD4631 /* MSFixedCameraNode.swift */,
 				1491821C25000178009CEE8B /* MSNode.swift */,
-				145021982573376700FB2460 /* MSParticleNode.swift */,
-				14CB15E8256F57E20050EF65 /* MSParticleScene.swift */,
 				1454259C24F34340005926FB /* MSScene.swift */,
 				14358C4225025F630035C602 /* MSSpriteNode.swift */,
 			);
@@ -743,8 +752,17 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1476AF6725FE71C900E8DC20 /* train-color.png in Resources */,
+				1476AF6325FE71C900E8DC20 /* Bump_2K.png in Resources */,
+				1476AF6225FE71C900E8DC20 /* Moon2K.mtl in Resources */,
+				1476AF6925FE71C900E8DC20 /* treefir.mtl in Resources */,
 				141AE07525FDB49500024A26 /* LaunchScreen.storyboard in Resources */,
+				1476AF6525FE71C900E8DC20 /* Diffuse_2K.png in Resources */,
 				141AE07225FDB49500024A26 /* Assets.xcassets in Resources */,
+				1476AF6625FE71C900E8DC20 /* Moon2K.obj in Resources */,
+				1476AF6425FE71C900E8DC20 /* treefir.obj in Resources */,
+				1476AF6125FE71C900E8DC20 /* train.mtl in Resources */,
+				1476AF6825FE71C900E8DC20 /* train.obj in Resources */,
 				141AE07025FDB49400024A26 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -956,7 +974,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++2a";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 7CDJ3XPY2Q;
 				INFOPLIST_FILE = MetalSpheres/iOS/Info.plist;
@@ -979,7 +997,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++2a";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 7CDJ3XPY2Q;
 				INFOPLIST_FILE = MetalSpheres/iOS/Info.plist;

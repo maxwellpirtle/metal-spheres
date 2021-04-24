@@ -15,9 +15,11 @@ extension MTLComputePipelineState {
     var maximumThreadgroupMemoryAllocation: Int {
         // Values can be found via the Metal Feature Set released by Apple
         // at the following link: https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
-        if device.supportsFamily(.apple1) || device.supportsFamily(.apple2) { return 16_352 }
-        else if device.supportsFamily(.apple3)                              { return 16_384 }
-        else                                                                { return 32_768 }
+        if device.supportsFamily(.apple4)
+            || device.supportsFamily(.mac1)
+            || device.supportsFamily(.macCatalyst1) { return 32_768 }
+        else if device.supportsFamily(.apple3)      { return 16_384 }
+        else                                        { return 16_352 }
     }
     
     /// Computes the largest number of threads in a threadgroup under the

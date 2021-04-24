@@ -212,39 +212,6 @@ class MetalContentViewController: UIViewController {
         // Dispatch a size update
         renderer.mtkView(sceneView, drawableSizeWillChange: sceneView.drawableSize)
     }
-    
-    // MARK: - User Interaction -
-    
-    // MARK: User Interaction
-    
-    @IBAction func requestedSimulationPause(_ sender: UIMenuItem) {
-        
-        // Pause/unpause the current simulation
-        renderer.pauseSimulation()
-        
-        // Query if the simulation is now paused
-        let paused = renderer.isPaused
-        
-        // If we have requested to pause,
-        sender.title = { (isPaused: Bool) in isPaused ? InteractionConstants.pauseSimulationLabel : InteractionConstants.resumeSimulationLabel }(paused)
-        
-    }
-    
-    @IBAction func toggleCoordinateFrameVisibility(_ sender: UIMenuItem) {
-        
-    }
-    
-    @IBAction func togglePointParticleSetting(_ sender: UIMenuItem) {
-        
-        // Toggle/untoggle point particles
-        renderer.togglePointParticleRendering()
-        
-        // Query if the simulation is now paused
-        let points = renderer.isRenderingParticlesAsPoints
-        
-        // If we have requested to pause,
-        sender.title = { (points: Bool) in points ? InteractionConstants.togglePointParticleLabel : InteractionConstants.toggleSphericalParticleLabel }(points)
-    }
 }
 
 #endif
